@@ -3,12 +3,12 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
-target 'ShootAndShare' do
+target 'ShootandShare' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
 
-  target 'ShootAndShareTests' do
+  target 'ShootandShareTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -23,10 +23,10 @@ target 'ShootAndShare' do
   end
 end
 
-target 'ShootAndShare-tvOS' do
-  # Pods for ShootAndShare-tvOS
+target 'ShootandShare-tvOS' do
+  # Pods for ShootandShare-tvOS
 
-  target 'ShootAndShare-tvOSTests' do
+  target 'ShootandShare-tvOSTests' do
     inherit! :search_paths
     # Pods for testing
   end

@@ -1,4 +1,6 @@
 apply plugin: "com.android.application"
+apply plugin: 'com.google.gms.google-services'
+
 
 import com.android.build.OutputFile
 
@@ -83,6 +85,12 @@ project.ext.react = [
 
 apply from: "../../node_modules/react-native/react.gradle"
 
+project.ext.vectoricons = [
+    iconFontNames: [ 'MaterialCommunityIcons.ttf', 'Feather.ttf' ] // Name of the font files you want to copy
+]
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
 /**
  * Set this to true to create two separate APKs instead of one:
  *   - An APK that only works on ARM devices
@@ -129,11 +137,12 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.shootandshare"
+        applicationId "com.yuanda.shootandshare"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     splits {
         abi {
@@ -183,6 +192,12 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
+    implementation 'androidx.multidex:multidex:2.0.1' // multidex
+    implementation 'com.google.firebase:firebase-analytics:17.2.2' // firebase analytics
+    implementation 'com.google.firebase:firebase-firestore:21.2.1' // firebase firestorage
+    implementation 'com.google.firebase:firebase-auth:19.3.1' // firebase auth
+    implementation 'com.google.firebase:firebase-storage:19.1.1' // firebase storage
+
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
