@@ -2,9 +2,19 @@ import 'react-native-gesture-handler';
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/Feather';
 // * screen
-import {Splashscreen, Login, Register, Home, Profile, OnBoard} from '../screen';
+import {
+  Splashscreen,
+  Login,
+  Register,
+  Home,
+  Profile,
+  OnBoard,
+  Add,
+} from '../screen';
+import { color } from '../styles/color';
 
 // Splash
 const SplashStack = createStackNavigator();
@@ -46,10 +56,47 @@ const Auth = () => (
 );
 
 // App
-const AppStack = createStackNavigator();
+const AppStack = createBottomTabNavigator();
 const App = () => (
-  <AppStack.Navigator headerMode="none">
+  <AppStack.Navigator
+    headerMode="none"
+    initialRouteName="home"
+    screenOptions={({route}) => ({
+      tabBarIcon: ({ color, size}) => {
+        let iconName;
+
+        switch (route.name) {
+          case 'home':
+            iconName = 'home';
+            break;
+          case 'add':
+            iconName = 'camera';
+            break;
+          case 'profile':
+            iconName = 'user';
+            break;
+          default:
+            iconName = 'slash';
+            break;
+        }
+
+        // You can return any component that you like here!
+        return (
+          <Icon
+            name={iconName}
+            size={size}
+            color={color}
+            style={{marginTop: 10}}
+          />
+        );
+      },
+    })}
+    tabBarOptions={{
+      activeTintColor: color.merahJambu,
+      inactiveTintColor: 'gray',
+    }}>
     <AppStack.Screen name="home" component={Home} />
+    <AppStack.Screen name="add" component={Add} />
     <AppStack.Screen name="profile" component={Profile} />
   </AppStack.Navigator>
 );
