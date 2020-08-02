@@ -5,8 +5,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import {color} from '../../styles/color';
 
 export default function index({navigation}) {
-
-    const gotoProfile = () => navigation.navigate('profile')
+  const gotoProfile = () => navigation.navigate('profile');
 
   const data = [
     {
@@ -65,9 +64,9 @@ export default function index({navigation}) {
         />
         <Text style={[styles.name, styles.username]}>Yuanda</Text>
       </TouchableOpacity>
-        <TouchableOpacity onPress={gotoProfile}>
-          <Icon name="settings" size={20} color={color.hitamAbu} />
-        </TouchableOpacity>
+      <TouchableOpacity onPress={gotoProfile}>
+        <Icon name="settings" size={20} color={color.hitamAbu} />
+      </TouchableOpacity>
     </View>
   );
 
@@ -91,12 +90,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 20,
   },
-  userAvatar : {
-      width: 40,
-      height: 40,
+  userAvatar: {
+    width: 40,
+    height: 40,
   },
   username: {
-      fontSize: 16,
+    fontSize: 16,
   },
   container: {
     marginHorizontal: 20,

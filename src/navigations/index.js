@@ -60,7 +60,7 @@ const AppStack = createBottomTabNavigator();
 const App = () => (
   <AppStack.Navigator
     headerMode="none"
-    initialRouteName="home"
+    initialRouteName="profile"
     screenOptions={({route}) => ({
       tabBarIcon: ({ color, size}) => {
         let iconName;
@@ -96,7 +96,7 @@ const App = () => (
       inactiveTintColor: 'gray',
     }}>
     <AppStack.Screen name="home" component={Home} />
-    <AppStack.Screen name="add" component={Add} />
+    <AppStack.Screen name="add" component={Add} options={{tabBarVisible: false}} />
     <AppStack.Screen name="profile" component={Profile} />
   </AppStack.Navigator>
 );
