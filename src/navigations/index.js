@@ -17,14 +17,22 @@ const Splash = () => (
 // Root
 const RootStack = createStackNavigator();
 const Root = () => (
-  <RootStack.Navigator initialRouteName="onBoard">
+  <RootStack.Navigator initialRouteName="app">
     <RootStack.Screen
       name="onBoard"
       component={OnBoard}
       options={{headerShown: false}}
     />
-    <RootStack.Screen name="auth" component={Auth} />
-    <RootStack.Screen name="app" component={App} />
+    <RootStack.Screen
+      name="auth"
+      component={Auth}
+      options={{headerShown: false}}
+    />
+    <RootStack.Screen
+      name="app"
+      component={App}
+      options={{headerShown: false}}
+    />
   </RootStack.Navigator>
 );
 
@@ -40,25 +48,22 @@ const Auth = () => (
 // App
 const AppStack = createStackNavigator();
 const App = () => (
-  <AppStack.Navigator>
+  <AppStack.Navigator headerMode="none">
     <AppStack.Screen name="home" component={Home} />
     <AppStack.Screen name="profile" component={Profile} />
   </AppStack.Navigator>
 );
 
 export default function index() {
+  const [splash, setSplash] = React.useState(false);
 
-    const [splash,setSplash] = React.useState(false)
-
-    React.useEffect(() => {
-        // setTimeout(() => {
-        //     setSplash(false);
-        // },1000)
-    }, [])
+  React.useEffect(() => {
+    // setTimeout(() => {
+    //     setSplash(false);
+    // },1000)
+  }, []);
 
   return (
-    <NavigationContainer>
-      { splash ? <Splash /> : <Root /> }
-    </NavigationContainer>
+    <NavigationContainer>{splash ? <Splash /> : <Root />}</NavigationContainer>
   );
 }

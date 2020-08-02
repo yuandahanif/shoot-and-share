@@ -9,30 +9,26 @@ export default function index({navigation}) {
     {
       key: '1',
       title: 'Fotografi dan Seni Visual',
-      text: 'Gabung bersama kami dan ekspresikan seni visualmu.',
+      text: 'Gabung bersama kami \ndan ekspresikan seni visualmu.',
       image: require('../../assets/images/undraw_camera_mg5h.png'),
-      backgroundColor: '#59b2ab',
     },
     {
       key: '2',
       title: 'Temukan Jutaan Karya',
-      text: 'Tunjukan dan Tampilkan karya terbaikmu bersama kami.',
+      text: 'Cari dan temukan mahakarya \ndari seluruh Dunia.',
       image: require('../../assets/images/undraw_the_search_s0xf.png'),
-      backgroundColor: '#febe29',
     },
     {
       key: '3',
       title: 'Buat Galeri Senimu',
-      text: 'Tunjukan dan Tampilkan karya terbaikmu bersama kami.',
+      text: 'Tunjukan dan Tampilkan karya terbaikmu \nbersama kami.',
       image: require('../../assets/images/undraw_online_gallery_dmv3.png'),
-      backgroundColor: '#febe29',
     },
     {
       key: '4',
       title: 'Bagikan Karyamu',
-      text: "Bagikan karyamu kepada dunia.",
+      text: 'Bagikan karyamu kepada dunia.',
       image: require('../../assets/images/undraw_Share_re_9kfx.png'),
-      backgroundColor: '#22bcb5',
     },
   ];
 
@@ -40,7 +36,7 @@ export default function index({navigation}) {
     return (
       <View style={styles.slide}>
         <Text style={styles.title}>{item.title}</Text>
-        <Image source={item.image} />
+        <Image source={item.image} style={styles.image} />
         <Text style={styles.text}>{item.text}</Text>
       </View>
     );
@@ -48,28 +44,26 @@ export default function index({navigation}) {
 
   const onDone = () => {
     navigation.reset({
-        index: 0,
-        routes: [{ name: 'auth' }],
-      });
-  }
-  
-  const _renderDone = () => (
-      <Text>Done</Text>
-  )
-  
-  const _renderNext = () => (
-      <Text>Next</Text>
-  )
-  const _renderPrev = () => (
-      <Text>prev</Text>
-  )
-  const _renderPagination = () => (
-      <Text>Pagination</Text>
-  )
-  const _renderSkip = () => (
-      <Text>Skip</Text>
-  )
+      index: 0,
+      routes: [{name: 'auth'}],
+    });
+  };
 
+  const _renderDone = () => (
+    <View style={styles.squereButton}>
+      <Text style={styles.buttonText}>Lewati</Text>
+    </View>
+  );
+  const _renderNext = () => (
+    <View style={styles.squereButton}>
+      <Text style={styles.buttonText}>Berikutnya</Text>
+    </View>
+  );
+  const _renderSkip = () => (
+    <View style={styles.squereButton}>
+      <Text style={styles.buttonText}>Lewati</Text>
+    </View>
+  );
 
   return (
     // <View style={styles.container}>
@@ -77,11 +71,11 @@ export default function index({navigation}) {
       renderItem={_renderItem}
       data={slides}
       onDone={onDone}
-      activeDotStyle={{backgroundColor: color.merahJambu}}
+      activeDotStyle={{backgroundColor: 'cyan'}}
       renderNextButton={_renderNext}
-      renderPrevButton={_renderPrev}
       renderDoneButton={_renderDone}
       renderSkipButton={_renderSkip}
+      onSkip={onDone}
       showSkipButton={true}
     />
     // </View>
@@ -92,5 +86,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  slide: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  title: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: color.hitamText,
+    marginTop: 50,
+  },
+  image: {
+    flex: 1,
+    resizeMode: 'center',
+  },
+  text: {
+    flex: 1,
+    fontSize: 16,
+    textAlign: 'center',
+    color: color.hitamText,
+  },
+  squereButton: {
+    backgroundColor: '#f7f7f7',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: color.hitamAbu,
   },
 });

@@ -18,11 +18,13 @@
     "react": "16.13.1",
     "react-native": "0.63.2",
     "react-native-app-intro-slider": "^4.0.4",
+    "react-native-camera": "^3.35.0",
     "react-native-gesture-handler": "^1.7.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.2",
     "react-native-reanimated": "^1.10.1",
     "react-native-safe-area-context": "^3.1.1",
     "react-native-screens": "^2.9.0",
+    "react-native-touch-id": "^4.4.1",
     "react-native-vector-icons": "^7.0.0"
   },
   "devDependencies": {
