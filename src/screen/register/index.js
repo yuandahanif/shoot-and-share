@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {StyleSheet, View, Text, Image} from 'react-native';
 import {
   GoogleSignin,
@@ -7,6 +7,7 @@ import {
 } from '@react-native-community/google-signin';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
+import {RootContext} from '../../contexts';
 
 import {color} from '../../styles/color';
 

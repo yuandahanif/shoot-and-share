@@ -1,17 +1,26 @@
-import React, {useRef, useEffect, useState} from 'react';
+import React, {useRef, useEffect, useState, useContext} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 import {StyleSheet, Text, View} from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import {RootContext} from '../../contexts';
 
-export default function add({navigation}) {
+export default function Add({navigation}) {
+  const {user} = useContext(RootContext);
+
   const camera = useRef();
+  const [photo, setPhoto] = useState({});
   const [type, setType] = useState('back');
   const [uploadPromt, setUploadPromt] = useState(false);
-
   //   for performance
   const isFocused = useIsFocused();
+
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
 
   const goBack = () => {
     navigation.goBack();
@@ -26,7 +35,7 @@ export default function add({navigation}) {
   const takePicture = async () => {
     const options = {quality: 0.5, base64: true, pauseAfterCapture: true};
     const data = await camera.current.takePictureAsync(options);
-    console.log(data);
+    setPhoto(data);
     setUploadPromt(true);
   };
 
@@ -47,7 +56,7 @@ export default function add({navigation}) {
   const uploadImage = () => {
     setUploadPromt(false);
     camera.current.resumePreview();
-    //   upload
+    uploadtoFirebase();
   };
 
   const cancleUpload = () => {
@@ -60,6 +69,42 @@ export default function add({navigation}) {
       <Icon name="camera" size={40} color="white" />
     </TouchableOpacity>
   );
+
+  const uploadtoFirebase = () => {
+    const timestamp = new Date().getTime();
+    const fileName = `${user.id}-${timestamp}`;
+    const upload = storage()
+      .ref(`/articles/images/${fileName}`)
+      .putFile(photo.uri);
+    upload.then((snapshot) => {
+      const serverTimestamp = firestore.FieldValue.serverTimestamp();
+      const articleRef = firestore().collection('articles');
+      const userRef = firestore().collection('users');
+
+      articleRef
+        .doc(fileName)
+        .set({
+          id: fileName,
+          author: userRef.doc(user.id),
+          fileName: snapshot.metadata.fullPath,
+          createdAt: serverTimestamp,
+          love: 0,
+        })
+        .then(() => {
+          alert('upload success!');
+        });
+    });
+
+    upload.on('state_changed', (progress) => {
+      console.log(
+        `transfer data ${progress.bytesTransferred} dari ${progress.totalBytes}`,
+      );
+    });
+
+    upload.catch((err) => {
+      console.log('error upload photo -> ', err);
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -96,7 +141,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cameraButton: {
-      marginBottom: 40,
+    marginBottom: 40,
   },
   uploadContainer: {
     width: '100%',

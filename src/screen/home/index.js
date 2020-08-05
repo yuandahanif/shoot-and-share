@@ -1,10 +1,47 @@
-import React from 'react';
+import React, {useEffect, useContext, useState} from 'react';
 import {StyleSheet, Text, View, Image} from 'react-native';
 import {FlatList, TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
 import {color} from '../../styles/color';
+import firestore from '@react-native-firebase/firestore';
+import {RootContext} from '../../contexts';
 
-export default function index({navigation}) {
+export default ({navigation}) => {
+  const {user} = useContext(RootContext);
+
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    const subscribe = firestore()
+      .collection('articles')
+      .onSnapshot((querySnapshot) => {
+        const articles = [];
+
+        querySnapshot.forEach((documentSnapshot) => {
+          articles.push({
+            ...documentSnapshot.data(),
+            key: documentSnapshot.id,
+          });
+        });
+        console.log(articles);
+        setArticles(articles);
+      });
+    return () => subscribe();
+  }, []);
+
+  // const getAtricle = async () => {
+  //   const articleRef = firestore().collection('articles');
+  //   articleRef.orderBy('createdAt', 'asc').onSnapshot(
+  //     (QuerySnapshot) => {
+  //       setArticles(QuerySnapshot.docs);
+  //       console.log(QuerySnapshot);
+  //     },
+  //     (err) => {
+  //       console.log(err);
+  //     },
+  //   );
+  // };
+
   const gotoProfile = () => navigation.navigate('profile');
 
   const data = [
@@ -35,20 +72,20 @@ export default function index({navigation}) {
     <View style={styles.container}>
       <View style={styles.author}>
         <TouchableOpacity style={styles.profile}>
-          <Image source={item.avatar_url} style={styles.avatar} />
-          <Text style={styles.name}>{item.name}</Text>
+          <Image source={{uri: item._data.avatar_url}} style={styles.avatar} />
+          <Text style={styles.name}>{item._data.name}</Text>
         </TouchableOpacity>
         <TouchableOpacity>
           <Icon name="more-vertical" size={16} />
         </TouchableOpacity>
       </View>
       <View style={styles.imageContainer}>
-        <Image source={item.image_url} style={styles.image} />
+        <Image source={item._data.fileName} style={styles.image} />
       </View>
       <View style={styles.description}>
         <TouchableOpacity style={styles.love}>
           <Icon name="thumbs-up" size={16} color="red" />
-          <Text style={styles.loveCount}>{item.like}</Text>
+          <Text style={styles.loveCount}>{item._data.love}</Text>
         </TouchableOpacity>
         <Text>12 juni 2020</Text>
       </View>
@@ -59,10 +96,10 @@ export default function index({navigation}) {
     <View style={[styles.author, styles.header]}>
       <TouchableOpacity style={styles.profile} onPress={gotoProfile}>
         <Image
-          source={require('../../assets/images/snowsant-profile.png')}
+          source={{uri: user && user.avatar_url}}
           style={[styles.avatar, styles.userAvatar]}
         />
-        <Text style={[styles.name, styles.username]}>Yuanda</Text>
+        <Text style={[styles.name, styles.username]}>{user && user.name}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={gotoProfile}>
         <Icon name="settings" size={20} color={color.hitamAbu} />
@@ -75,14 +112,15 @@ export default function index({navigation}) {
       <FlatList
         stickyHeaderIndices={[0]}
         ListHeaderComponent={header}
-        data={data}
+        data={articles}
+        ListEmptyComponent={() => <Text>Loading</Text>}
         renderItem={_renderPost}
-        keyExtractor={(data) => data.uid}
+        keyExtractor={(data) => data.id}
         contentContainerStyle={styles.flatList}
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   flatList: {},
@@ -93,6 +131,7 @@ const styles = StyleSheet.create({
   userAvatar: {
     width: 40,
     height: 40,
+    backgroundColor: 'grey',
   },
   username: {
     fontSize: 16,

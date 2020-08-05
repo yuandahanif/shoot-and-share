@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import firebase from '@react-native-firebase/app';
 import Navigation from './navigations';
+import {RootContext} from './contexts/index';
 
-export default function index() {
+export default () => {
   // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: 'AIzaSyDds_GL7sW9t11q3y6nychG8XEhvAkaUlY',
@@ -20,5 +21,11 @@ export default function index() {
     firebase.analytics();
   }
 
-  return <Navigation />;
-}
+  const [user, setUser] = useState({});
+
+  return (
+    <RootContext.Provider value={{user, setUser}}>
+      <Navigation />
+    </RootContext.Provider>
+  );
+};
