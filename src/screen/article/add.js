@@ -75,7 +75,7 @@ export default function Add({navigation}) {
     const fileName = `${user.id}-${timestamp}`;
     const upload = storage()
       .ref(`/articles/images/${fileName}`)
-      .putFile(photo.uri);
+      .putFile(photo.uri, {cacheControl: 'public, max-age=3600'});
     upload.then((snapshot) => {
       const serverTimestamp = firestore.FieldValue.serverTimestamp();
       const articleRef = firestore().collection('articles');

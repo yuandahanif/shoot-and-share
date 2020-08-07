@@ -1,93 +1,126 @@
-import React, {useEffect, useContext, useState} from 'react';
-import {StyleSheet, Text, View, Image} from 'react-native';
+import React, {useEffect, useContext, useState, useRef} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
 import {FlatList, TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
 import {color} from '../../styles/color';
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 import {RootContext} from '../../contexts';
+import Image from 'react-native-fast-image';
 
 export default ({navigation}) => {
   const {user} = useContext(RootContext);
-
   const [articles, setArticles] = useState([]);
+  const [lastArticleIndex, setLastArticleIndex] = useState(null);
+  const isMounted = useRef(false);
+
+  const articleRef = firestore()
+    .collection('articles')
+    .orderBy('createdAt', 'desc')
+    .limit(30);
+
+  // FIXME: done.
+  const firstArticle = () => {
+    articleRef.get().then(async (documents) => {
+      let temp = [];
+      await Promise.all(
+        documents.docs.map(async (doc) => {
+          const data = doc.data();
+          const res = await data.author.get();
+          const author = await res.data();
+          const fileName = await storage().ref(data.fileName).getDownloadURL();
+          temp.push({...data, author, fileName});
+          // Promise.resolve(temp);
+        }),
+      )
+        .then(() => {
+          if (!isMounted.current) {
+            setArticles(temp);
+            setLastArticleIndex(temp ? temp[temp.length - 1].createdAt : null);
+          }
+        })
+        .catch((err) => {
+          console.log('firstArticle -> err', err);
+        });
+    });
+  };
+
+  const nextArticles = () => {
+    console.log('hi refreshing', articles[0]);
+    // articleRef
+    //   .startAfter(lastArticleIndex)
+    //   .get()
+    //   .then((documents) => {
+    //     let articles = [];
+    //     documents.forEach((doc) => {
+    //       articles.push(doc.data());
+    //     });
+    //     setArticles(articles);
+    //     setLastArticleIndex(articles[articles.length - 1].createdAt);
+    //   });
+  };
 
   useEffect(() => {
-    const subscribe = firestore()
-      .collection('articles')
-      .onSnapshot((querySnapshot) => {
-        const articles = [];
-
-        querySnapshot.forEach((documentSnapshot) => {
-          articles.push({
-            ...documentSnapshot.data(),
-            key: documentSnapshot.id,
-          });
-        });
-        console.log(articles);
-        setArticles(articles);
-      });
-    return () => subscribe();
+    firstArticle();
+    return () => {
+      isMounted.current = true;
+    };
   }, []);
-
-  // const getAtricle = async () => {
-  //   const articleRef = firestore().collection('articles');
-  //   articleRef.orderBy('createdAt', 'asc').onSnapshot(
-  //     (QuerySnapshot) => {
-  //       setArticles(QuerySnapshot.docs);
-  //       console.log(QuerySnapshot);
-  //     },
-  //     (err) => {
-  //       console.log(err);
-  //     },
-  //   );
-  // };
 
   const gotoProfile = () => navigation.navigate('profile');
 
-  const data = [
-    {
-      uid: '131412412412',
-      name: 'snowsant',
-      avatar_url: require('../../assets/images/snowsant-profile.png'),
-      image_url: require('../../assets/images/snowsant-profile.png'),
-      like: 123,
-    },
-    {
-      uid: '13141241241',
-      name: 'query',
-      avatar_url: require('../../assets/images/snowsant-profile.png'),
-      image_url: require('../../assets/images/undraw_camera_mg5h.png'),
-      like: 122,
-    },
-    {
-      uid: '1314124124',
-      name: 'hoshhi',
-      avatar_url: require('../../assets/images/snowsant-profile.png'),
-      image_url: require('../../assets/images/undraw_camera_mg5h.png'),
-      like: 121,
-    },
-  ];
+  // * Article
+  const ImageArticle = ({uri}) => (
+    <View style={styles.imageContainer}>
+      <Image
+        source={{uri: uri || null}}
+        style={styles.image}
+        resizeMode={Image.resizeMode.cover}
+      />
+    </View>
+  );
+
+  const dateConvert = (time) => {
+    const date = new Date(time * 1000);
+    let month = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return `${date.getDate()} ${month[date.getMonth()]} ${date.getFullYear()}`;
+  };
 
   const _renderPost = ({item}) => (
     <View style={styles.container}>
       <View style={styles.author}>
         <TouchableOpacity style={styles.profile}>
-          <Image source={{uri: item._data.avatar_url}} style={styles.avatar} />
-          <Text style={styles.name}>{item._data.name}</Text>
+          <Image
+            source={{uri: item.author && item.author.avatar_url}}
+            style={styles.avatar}
+            resizeMode={Image.resizeMode.cover}
+          />
+          <Text style={styles.name}>{item.author && item.author.name}</Text>
         </TouchableOpacity>
         <TouchableOpacity>
           <Icon name="more-vertical" size={16} />
         </TouchableOpacity>
       </View>
-      <View style={styles.imageContainer}>
-        <Image source={item._data.fileName} style={styles.image} />
-      </View>
+      <ImageArticle uri={item.fileName} />
       <View style={styles.description}>
         <TouchableOpacity style={styles.love}>
           <Icon name="thumbs-up" size={16} color="red" />
-          <Text style={styles.loveCount}>{item._data.love}</Text>
+          <Text style={styles.loveCount}>{item.love}</Text>
         </TouchableOpacity>
-        <Text>12 juni 2020</Text>
+        <Text>{dateConvert(item.createdAt._seconds)}</Text>
       </View>
     </View>
   );
@@ -98,6 +131,7 @@ export default ({navigation}) => {
         <Image
           source={{uri: user && user.avatar_url}}
           style={[styles.avatar, styles.userAvatar]}
+          resizeMode={Image.resizeMode.cover}
         />
         <Text style={[styles.name, styles.username]}>{user && user.name}</Text>
       </TouchableOpacity>
@@ -110,6 +144,8 @@ export default ({navigation}) => {
   return (
     <View style={{flex: 1}}>
       <FlatList
+        onEndReached={nextArticles}
+        onEndReachedThreshold={0.2}
         stickyHeaderIndices={[0]}
         ListHeaderComponent={header}
         data={articles}
@@ -194,7 +230,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    // resizeMode: 'cover',
   },
   description: {
     padding: 10,
