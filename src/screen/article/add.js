@@ -18,9 +18,9 @@ export default function Add({navigation}) {
   //   for performance
   const isFocused = useIsFocused();
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+  // useEffect(() => {
+  //   console.log(user);
+  // }, [user]);
 
   const goBack = () => {
     navigation.goBack();
@@ -33,7 +33,12 @@ export default function Add({navigation}) {
   };
 
   const takePicture = async () => {
-    const options = {quality: 0.5, base64: true, pauseAfterCapture: true};
+    const options = {
+      quality: 0.5,
+      base64: true,
+      pauseAfterCapture: true,
+      exif: true,
+    };
     const data = await camera.current.takePictureAsync(options);
     setPhoto(data);
     setUploadPromt(true);

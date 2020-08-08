@@ -1,23 +1,33 @@
 import React, {useEffect, useContext, useState, useRef} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {FlatList, TouchableOpacity} from 'react-native-gesture-handler';
+import {StyleSheet, Text, View, FlatList, Pressable} from 'react-native';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
-import {color} from '../../styles/color';
+import Modal from 'react-native-modal';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
-import {RootContext} from '../../contexts';
 import Image from 'react-native-fast-image';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
+
+import {color} from '../../styles/color';
+import {RootContext} from '../../contexts';
 
 export default ({navigation}) => {
   const {user} = useContext(RootContext);
+  const isMounted = useRef(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [profileId, setProfileId] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [articles, setArticles] = useState([]);
   const [lastArticleIndex, setLastArticleIndex] = useState(null);
-  const isMounted = useRef(false);
+  const [articleLimit, setArticleLimit] = useState(3);
 
   const articleRef = firestore()
     .collection('articles')
     .orderBy('createdAt', 'desc')
-    .limit(30);
+    .limit(articleLimit);
 
   // FIXME: done.
   const firstArticle = () => {
@@ -35,8 +45,12 @@ export default ({navigation}) => {
       )
         .then(() => {
           if (!isMounted.current) {
+            setArticleLimit(2);
             setArticles(temp);
-            setLastArticleIndex(temp ? temp[temp.length - 1].createdAt : null);
+            setLastArticleIndex(
+              documents.docs[documents.docs.length - 1] || null,
+            );
+            isMounted.current = true;
           }
         })
         .catch((err) => {
@@ -46,19 +60,58 @@ export default ({navigation}) => {
   };
 
   const nextArticles = () => {
-    console.log('hi refreshing', articles[0]);
-    // articleRef
-    //   .startAfter(lastArticleIndex)
-    //   .get()
-    //   .then((documents) => {
-    //     let articles = [];
-    //     documents.forEach((doc) => {
-    //       articles.push(doc.data());
-    //     });
-    //     setArticles(articles);
-    //     setLastArticleIndex(articles[articles.length - 1].createdAt);
-    //   });
+    articleRef
+      .startAfter(lastArticleIndex)
+      .get()
+      .then(async (documents) => {
+        let temp = [];
+        await Promise.all(
+          documents.docs.map(async (doc) => {
+            const data = doc.data();
+            const res = await data.author.get();
+            const author = await res.data();
+            const fileName = await storage()
+              .ref(data.fileName)
+              .getDownloadURL();
+            temp.push({...data, author, fileName});
+          }),
+        )
+          .then(() => {
+            const newArticles = [...articles, ...temp];
+            setArticles(newArticles);
+            setLastArticleIndex(
+              documents.docs[documents.docs.length - 1] || null,
+            );
+          })
+          .catch((err) => {
+            console.log('nextArticles -> err', err);
+          });
+      });
   };
+
+  const refreshArticle = () => {
+    isMounted.current = false;
+    setArticles([]);
+    firstArticle();
+  };
+
+  // * Modal
+  const openModal = (id) => {
+    setProfileId(id);
+    setIsModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setProfileId(null);
+    setIsModalVisible(false);
+  };
+
+  const gotoChat = ({id}) => {
+    closeModal();
+    navigation.navigate('Chat', {id});
+  };
+
+  const gotoProfile = () => navigation.navigate('profile');
 
   useEffect(() => {
     firstArticle();
@@ -67,9 +120,7 @@ export default ({navigation}) => {
     };
   }, []);
 
-  const gotoProfile = () => navigation.navigate('profile');
-
-  // * Article
+  // * Article screen
   const ImageArticle = ({uri}) => (
     <View style={styles.imageContainer}>
       <Image
@@ -111,7 +162,11 @@ export default ({navigation}) => {
           <Text style={styles.name}>{item.author && item.author.name}</Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Icon name="more-vertical" size={16} />
+          <Icon
+            name="more-vertical"
+            size={16}
+            onPress={() => openModal(item.author.id)}
+          />
         </TouchableOpacity>
       </View>
       <ImageArticle uri={item.fileName} />
@@ -143,13 +198,52 @@ export default ({navigation}) => {
 
   return (
     <View style={{flex: 1}}>
+      <Modal
+        isVisible={isModalVisible}
+        onSwipeComplete={closeModal}
+        swipeDirection={['down', 'up']}>
+        <View style={styles.modal}>
+          <Pressable
+            style={styles.modalButton}
+            onPress={() => console.log('profile -> ', profileId)}>
+            <Text>Profile</Text>
+          </Pressable>
+          <Pressable
+            style={styles.modalButton}
+            options={{tabBarVisible: false}}
+            onPress={() => gotoChat(profileId)}>
+            <Text>Chat</Text>
+          </Pressable>
+          <Pressable
+            style={styles.modalButton}
+            onPress={() => console.log('Laporkan', profileId)}>
+            <Text>Laporkan</Text>
+          </Pressable>
+          <Pressable
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={[styles.modalButton, {borderBottomWidth: 0}]}
+            onPress={() => {
+              closeModal();
+              console.log(profileId);
+            }}>
+            <Text>Tutup</Text>
+          </Pressable>
+        </View>
+      </Modal>
       <FlatList
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        refreshing={isRefreshing}
+        onRefresh={() => {
+          refreshArticle();
+        }}
         onEndReached={nextArticles}
-        onEndReachedThreshold={0.2}
+        onEndReachedThreshold={0.5}
         stickyHeaderIndices={[0]}
         ListHeaderComponent={header}
         data={articles}
-        ListEmptyComponent={() => <Text>Loading</Text>}
+        // TODO: skeleton loader . . .
+        ListEmptyComponent={() => <Text>Loading . . . </Text>}
         renderItem={_renderPost}
         keyExtractor={(data) => data.id}
         contentContainerStyle={styles.flatList}
@@ -244,5 +338,21 @@ const styles = StyleSheet.create({
   },
   loveCount: {
     marginLeft: 5,
+  },
+  // * Modal
+  modal: {
+    backgroundColor: 'white',
+    // padding: 22,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    borderRadius: 6,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  modalButton: {
+    // alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingVertical: hp(2),
+    borderBottomColor: color.abuPutih,
+    borderBottomWidth: 1,
   },
 });

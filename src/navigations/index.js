@@ -15,6 +15,7 @@ import {
   Profile,
   OnBoard,
   Add,
+  Chat,
 } from '../screen';
 import {color} from '../styles/color';
 import {RootContext} from '../contexts';
@@ -34,6 +35,16 @@ const Auth = () => (
     <AuthStack.Screen name="login" component={Login} />
     <AuthStack.Screen name="register" component={Register} />
   </AuthStack.Navigator>
+);
+
+// Home
+
+const HomeStack = createStackNavigator();
+const HomeScreen = () => (
+  <HomeStack.Navigator headerMode="none" initialRouteName="Home">
+    <HomeStack.Screen name="App" component={App} />
+    <HomeStack.Screen name="Chat" component={Chat} />
+  </HomeStack.Navigator>
 );
 
 // App
@@ -76,6 +87,7 @@ const App = () => (
       activeTintColor: color.merahJambu,
       inactiveTintColor: 'gray',
     }}>
+    {/* Main */}
     <AppStack.Screen name="home" component={Home} />
     <AppStack.Screen
       name="add"
@@ -107,16 +119,16 @@ export default () => {
       />
       <RootStack.Screen
         name="app"
-        component={App}
+        component={HomeScreen}
         options={{headerShown: false}}
       />
     </RootStack.Navigator>
   );
 
   React.useEffect(() => {
-    const userRef = firestore().collection('users');
     auth().onAuthStateChanged(async (user) => {
       try {
+        const userRef = firestore().collection('users');
         const document = await userRef.doc(user.uid).get();
         const data = document.data();
         setUser(data);

@@ -20,6 +20,7 @@ export default ({navigation}) => {
     navigation.push('register');
   };
 
+  // TODO: ADD login func
   const onLogin = () => {
     navigation.reset({
       index: 0,
