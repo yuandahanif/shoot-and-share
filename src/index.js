@@ -21,10 +21,15 @@ export default () => {
     firebase.analytics();
   }
 
+  // current User
   const [user, setUser] = useState({});
 
+  // App config
+  const [isChatScreen, setIsChatScreen] = useState(false);
+
   return (
-    <RootContext.Provider value={{user, setUser}}>
+    <RootContext.Provider
+      value={{user, setUser, isChatScreen, setIsChatScreen}}>
       <Navigation />
     </RootContext.Provider>
   );

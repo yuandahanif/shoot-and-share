@@ -9,9 +9,11 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
+import {CommonActions} from '@react-navigation/native';
 import {RootContext} from '../../contexts';
 
 import {color} from '../../styles/color';
+import index from '../splashscreen';
 
 export default ({navigation}) => {
   const {setUser} = useContext(RootContext);
@@ -28,6 +30,14 @@ export default ({navigation}) => {
     });
   };
 
+  const onLoginSucces = (data) => {
+    // setUser(data);
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'app'}],
+    });
+  };
+
   const signInWithGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
@@ -36,8 +46,6 @@ export default ({navigation}) => {
         webClientId:
           '1023844666896-vcfi0rqodn9unv3kvabqbgtk6f0qn6qf.apps.googleusercontent.com',
       });
-      // GoogleSignin.revokeAccess();
-      // GoogleSignin.signOut();
       const {idToken} = await GoogleSignin.signIn();
       const cred = auth.GoogleAuthProvider.credential(idToken);
       auth()
@@ -56,16 +64,21 @@ export default ({navigation}) => {
 
           userRef
             .doc(uid)
-            .set(data)
-            .then(() => {
-              setUser(data);
-              navigation.reset({
-                index: 0,
-                routes: [{name: 'app'}],
-              });
-            })
-            .catch((e) => {
-              console.log('firestore -> ', e);
+            .get()
+            .then((doc) => {
+              if (doc.exists) {
+                onLoginSucces(data);
+              } else {
+                userRef
+                  .doc(uid)
+                  .set(data)
+                  .then(() => {
+                    onLoginSucces(data);
+                  })
+                  .catch((e) => {
+                    console.log('firestore -> ', e);
+                  });
+              }
             });
         })
         .catch((err) => console.log('firebase auth -> ', err));

@@ -6,6 +6,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Feather';
+
+import {RootContext} from '../contexts';
+
 // * screen
 import {
   Splashscreen,
@@ -16,9 +19,9 @@ import {
   OnBoard,
   Add,
   Chat,
+  ChatList,
 } from '../screen';
 import {color} from '../styles/color';
-import {RootContext} from '../contexts';
 
 // Splash
 const SplashStack = createStackNavigator();
@@ -38,57 +41,66 @@ const Auth = () => (
 );
 
 // Home
-
 const HomeStack = createStackNavigator();
 const HomeScreen = () => (
-  <HomeStack.Navigator headerMode="none" initialRouteName="Home">
-    <HomeStack.Screen name="App" component={App} />
+  <HomeStack.Navigator initialRouteName="App">
+    <HomeStack.Screen
+      name="App"
+      component={App}
+      options={{headerShown: false}}
+    />
     <HomeStack.Screen name="Chat" component={Chat} />
+    <HomeStack.Screen
+      name="ChatList"
+      component={ChatList}
+      options={{title: 'Chat History'}}
+    />
   </HomeStack.Navigator>
 );
 
 // App
 const AppStack = createBottomTabNavigator();
+
+const TabView = ({route}) => ({
+  tabBarIcon: ({color, size}) => {
+    let iconName;
+
+    switch (route.name) {
+      case 'home':
+        iconName = 'home';
+        break;
+      case 'add':
+        iconName = 'camera';
+        break;
+      case 'profile':
+        iconName = 'user';
+        break;
+      default:
+        iconName = 'slash';
+        break;
+    }
+    // You can return any component that you like here!
+    return (
+      <Icon name={iconName} size={size} color={color} style={{marginTop: 10}} />
+    );
+  },
+});
+
 const App = () => (
   <AppStack.Navigator
     headerMode="none"
     initialRouteName="home"
-    screenOptions={({route}) => ({
-      tabBarIcon: ({color, size}) => {
-        let iconName;
-
-        switch (route.name) {
-          case 'home':
-            iconName = 'home';
-            break;
-          case 'add':
-            iconName = 'camera';
-            break;
-          case 'profile':
-            iconName = 'user';
-            break;
-          default:
-            iconName = 'slash';
-            break;
-        }
-
-        // You can return any component that you like here!
-        return (
-          <Icon
-            name={iconName}
-            size={size}
-            color={color}
-            style={{marginTop: 10}}
-          />
-        );
-      },
-    })}
+    screenOptions={TabView}
     tabBarOptions={{
       activeTintColor: color.merahJambu,
       inactiveTintColor: 'gray',
     }}>
     {/* Main */}
-    <AppStack.Screen name="home" component={Home} />
+    <AppStack.Screen
+      name="home"
+      component={Home}
+      // options={{tabBarVisible: isChatScreen ? false : true}}
+    />
     <AppStack.Screen
       name="add"
       component={Add}
@@ -127,16 +139,19 @@ export default () => {
 
   React.useEffect(() => {
     auth().onAuthStateChanged(async (user) => {
-      try {
-        const userRef = firestore().collection('users');
-        const document = await userRef.doc(user.uid).get();
-        const data = document.data();
-        setUser(data);
-        setIsAuth(true);
+      if (user !== null) {
+        try {
+          const userRef = firestore().collection('users');
+          const document = await userRef.doc(user.uid).get();
+          const data = document.data();
+          setUser(data);
+          setIsAuth(true);
+          setSplash(false);
+        } catch (error) {
+          console.log('check -> ', error);
+        }
+      } else {
         setSplash(false);
-      } catch (error) {
-        setSplash(false);
-        console.log('check -> ', error);
       }
     });
   }, []);

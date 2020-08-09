@@ -1,11 +1,22 @@
-import React,{ useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, Dimensions, Modal, Pressable} from 'react-native';
-import {FlatList, TouchableOpacity} from 'react-native-gesture-handler';
+import React, {useEffect, useState} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Dimensions,
+  Modal,
+  Pressable,
+  FlatList,
+} from 'react-native';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
+import auth from '@react-native-firebase/auth';
+import {GoogleSignin} from '@react-native-community/google-signin';
 
 const DEVICE = Dimensions.get('window');
 
-export default function index() {
+export default ({navigation}) => {
   const data = [
     {
       uid: '131412412412',
@@ -44,10 +55,31 @@ export default function index() {
     },
   ];
 
-  const [modalVisible, setModalVisible] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const logout = () => {
+    auth()
+      .signOut()
+      .then(async () => {
+        try {
+          GoogleSignin.configure({
+            offlineAccess: false,
+            webClientId:
+              '1023844666896-vcfi0rqodn9unv3kvabqbgtk6f0qn6qf.apps.googleusercontent.com',
+          });
+          await GoogleSignin.revokeAccess();
+          await GoogleSignin.signOut();
+          navigation.reset({index: 0, routes: [{name: 'auth'}]});
+        } catch (error) {
+          console.log('logout -> error', error);
+        }
+      });
+  };
 
   const _renderItem = ({item}) => (
-    <TouchableOpacity onPress={ () => deleteImage(item.uid)} style={styles.imageContainer}>
+    <TouchableOpacity
+      onPress={() => deleteImage(item.uid)}
+      style={styles.imageContainer}>
       <Image style={styles.image} source={item.image_url} />
     </TouchableOpacity>
   );
@@ -59,15 +91,19 @@ export default function index() {
         source={require('../../assets/images/snowsant-profile.png')}
       />
       <Text style={styles.name}>Yuanda</Text>
+      <TouchableOpacity onPress={logout}>
+        <Text>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 
   const deleteImage = (uid) => {
-      setModalVisible(true);
-  }
+    setModalVisible(true);
+  };
 
-  const confirmDelete = () => {// delete
-}
+  const confirmDelete = () => {
+    // delete
+  };
 
   const cancleDelete = () => setModalVisible(false);
 
@@ -78,7 +114,7 @@ export default function index() {
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
+          alert('Modal has been closed.');
         }}>
         <View
           style={{
@@ -137,7 +173,7 @@ export default function index() {
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   flatList: {

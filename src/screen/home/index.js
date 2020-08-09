@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import Modal from 'react-native-modal';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
+import auth from '@react-native-firebase/auth';
 import Image from 'react-native-fast-image';
 import {
   heightPercentageToDP as hp,
@@ -14,8 +15,9 @@ import {
 import {color} from '../../styles/color';
 import {RootContext} from '../../contexts';
 
-export default ({navigation}) => {
-  const {user} = useContext(RootContext);
+export default ({navigation, route}) => {
+  const {user: userFromContext} = useContext(RootContext);
+  const [user, setUser] = useState(userFromContext);
   const isMounted = useRef(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [profileId, setProfileId] = useState(null);
@@ -29,7 +31,19 @@ export default ({navigation}) => {
     .orderBy('createdAt', 'desc')
     .limit(articleLimit);
 
-  // FIXME: done.
+  const getUser = () => {
+    if (!userFromContext) {
+      const uid = auth().currentUser.uid;
+      firestore()
+        .doc(`users/${uid}`)
+        .get()
+        .then((data) => {
+          const user = data.data();
+          setUser(user);
+        });
+    }
+  };
+
   const firstArticle = () => {
     articleRef.get().then(async (documents) => {
       let temp = [];
@@ -45,7 +59,7 @@ export default ({navigation}) => {
       )
         .then(() => {
           if (!isMounted.current) {
-            setArticleLimit(2);
+            setArticleLimit(5);
             setArticles(temp);
             setLastArticleIndex(
               documents.docs[documents.docs.length - 1] || null,
@@ -106,15 +120,19 @@ export default ({navigation}) => {
     setIsModalVisible(false);
   };
 
-  const gotoChat = ({id}) => {
+  // * Navigation
+  const gotoChat = (id) => {
     closeModal();
-    navigation.navigate('Chat', {id});
+    navigation.navigate('Chat', {reciverId: id});
   };
 
   const gotoProfile = () => navigation.navigate('profile');
 
+  const gotoChatList = () => navigation.navigate('ChatList', {id: user.id});
+
   useEffect(() => {
     firstArticle();
+    getUser();
     return () => {
       isMounted.current = true;
     };
@@ -190,46 +208,62 @@ export default ({navigation}) => {
         />
         <Text style={[styles.name, styles.username]}>{user && user.name}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={gotoProfile}>
-        <Icon name="settings" size={20} color={color.hitamAbu} />
+      <TouchableOpacity onPress={gotoChatList}>
+        <Icon name="message-square" size={20} color={color.hitamAbu} />
       </TouchableOpacity>
     </View>
   );
 
-  return (
-    <View style={{flex: 1}}>
-      <Modal
-        isVisible={isModalVisible}
-        onSwipeComplete={closeModal}
-        swipeDirection={['down', 'up']}>
-        <View style={styles.modal}>
-          <Pressable
-            style={styles.modalButton}
-            onPress={() => console.log('profile -> ', profileId)}>
-            <Text>Profile</Text>
-          </Pressable>
+  const MoreModal = () => (
+    <Modal
+      isVisible={isModalVisible}
+      onSwipeComplete={closeModal}
+      swipeDirection={['down', 'up']}>
+      <View style={styles.modal}>
+        <Pressable
+          style={styles.modalButton}
+          onPress={() => console.log('profile -> ', profileId)}>
+          <Text>Profile</Text>
+        </Pressable>
+        {/* ! Hide If Current User */}
+        {profileId === user.id ? null : (
           <Pressable
             style={styles.modalButton}
             options={{tabBarVisible: false}}
             onPress={() => gotoChat(profileId)}>
             <Text>Chat</Text>
           </Pressable>
+        )}
+        {/* Change if current user */}
+        {profileId === user.id ? (
+          <Pressable
+            style={styles.modalButton}
+            onPress={() => console.log('Laporkan', profileId)}>
+            <Text>Pengaturan</Text>
+          </Pressable>
+        ) : (
           <Pressable
             style={styles.modalButton}
             onPress={() => console.log('Laporkan', profileId)}>
             <Text>Laporkan</Text>
           </Pressable>
-          <Pressable
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={[styles.modalButton, {borderBottomWidth: 0}]}
-            onPress={() => {
-              closeModal();
-              console.log(profileId);
-            }}>
-            <Text>Tutup</Text>
-          </Pressable>
-        </View>
-      </Modal>
+        )}
+        <Pressable
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={[styles.modalButton, {borderBottomWidth: 0}]}
+          onPress={() => {
+            closeModal();
+            console.log(profileId);
+          }}>
+          <Text>Tutup</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
+
+  return (
+    <View style={{flex: 1}}>
+      <MoreModal />
       <FlatList
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
