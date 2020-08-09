@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {StyleSheet, View, Text, Image} from 'react-native';
 import {
   GoogleSignin,
@@ -16,7 +16,9 @@ import {color} from '../../styles/color';
 import index from '../splashscreen';
 
 export default ({navigation}) => {
-  const {setUser} = useContext(RootContext);
+  // const {setUser} = useContext(RootContext);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const goToRegister = () => {
     navigation.push('register');
@@ -24,10 +26,24 @@ export default ({navigation}) => {
 
   // TODO: ADD login func
   const onLogin = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'app'}],
-    });
+    auth()
+      .signInWithEmailAndPassword(email, password)
+      .then((res) => {
+        const userRef = firestore().collection('users');
+        const uid = res.user.uid;
+
+        userRef
+          .doc(uid)
+          .get()
+          .then((doc) => {
+            if (doc.exists) {
+              onLoginSucces();
+            }
+          });
+      })
+      .catch((err) => {
+        alert('Kesalahan saat login. \nmohon coba beberapa saat lagi.\n' + err);
+      });
   };
 
   const onLoginSucces = (data) => {
@@ -111,6 +127,9 @@ export default ({navigation}) => {
               placeholder="Email"
               style={styles.textInput}
               underlineColorAndroid="transparent"
+              onChangeText={(text) => setEmail(text)}
+              autoCapitalize="none"
+              autoCompleteType="email"
             />
           </View>
           <View style={styles.formGroup}>
@@ -119,6 +138,9 @@ export default ({navigation}) => {
               placeholder="password"
               style={styles.textInput}
               underlineColorAndroid="transparent"
+              onChangeText={(text) => setPassword(text)}
+              autoCompleteType="password"
+              secureTextEntry={true}
             />
           </View>
           <TouchableOpacity

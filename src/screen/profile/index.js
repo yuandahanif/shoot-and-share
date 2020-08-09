@@ -12,11 +12,19 @@ import {
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-community/google-signin';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
+import {color} from '../../styles/color';
 
 const DEVICE = Dimensions.get('window');
 
 export default ({navigation}) => {
+  const [user, setUser] = useState({});
+
   const data = [
     {
       uid: '131412412412',
@@ -55,6 +63,24 @@ export default ({navigation}) => {
     },
   ];
 
+  const getUser = async () => {
+    const uid = auth().currentUser.uid;
+    const doc = await firestore().doc(`users/${uid}`).get();
+    const data = doc.data();
+    setUser(data);
+  };
+
+  // const getUserPost = () => {
+  //   firestore().doc('articles').
+  // }
+
+  useEffect(() => {
+    const init = async () => {
+      await getUser();
+    };
+    init();
+  }, []);
+
   const [modalVisible, setModalVisible] = useState(false);
 
   const logout = () => {
@@ -71,6 +97,7 @@ export default ({navigation}) => {
           await GoogleSignin.signOut();
           navigation.reset({index: 0, routes: [{name: 'auth'}]});
         } catch (error) {
+          navigation.reset({index: 0, routes: [{name: 'auth'}]});
           console.log('logout -> error', error);
         }
       });
@@ -88,11 +115,14 @@ export default ({navigation}) => {
     <View style={styles.header}>
       <Image
         style={styles.imageProfile}
-        source={require('../../assets/images/snowsant-profile.png')}
+        source={{uri: user && user.avatar_url}}
       />
-      <Text style={styles.name}>Yuanda</Text>
-      <TouchableOpacity onPress={logout}>
-        <Text>Logout</Text>
+      <Text style={styles.name}>{user && user.name}</Text>
+      <Text style={styles.quotesText}>
+        "ini hanya dummy data. saat ini hanya tombol logout yang berfungsi."
+      </Text>
+      <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+        <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
@@ -167,7 +197,7 @@ export default ({navigation}) => {
         horizontal={false}
         numColumns={3}
         columnWrapperStyle={{
-          marginLeft: (DEVICE.width - (DEVICE.width / 3 - 50 / 3) * 3) / 3,
+          paddingLeft: (wp('100%') - wp(6) - wp('28%') * 3) / 2,
         }}
         contentContainerStyle={styles.flatList}
       />
@@ -186,8 +216,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   imageProfile: {
-    width: DEVICE.width / 4 - 20,
-    height: DEVICE.width / 4 - 20,
+    width: wp('25%'),
+    height: wp('25%'),
     borderRadius: 200,
     resizeMode: 'cover',
   },
@@ -195,14 +225,31 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
+  quotesText: {
+    color: color.hitamAbu,
+    alignItems: 'center',
+    textAlign: 'center',
+    fontSize: hp(1.6),
+    marginVertical: hp(1),
+  },
   imageContainer: {
-    width: DEVICE.width / 3 - 50 / 3,
-    height: DEVICE.width / 3 - 50 / 3,
-    margin: 2,
+    width: wp('28%'),
+    height: wp('28%'),
+    margin: wp(1),
   },
   image: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  logoutButton: {
+    marginTop: hp(1.5),
+    paddingVertical: hp(0.8),
+    paddingHorizontal: hp(1.2),
+    backgroundColor: color.biruAir,
+    borderRadius: hp(0.2),
+  },
+  logoutText: {
+    color: 'white',
   },
 });

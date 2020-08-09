@@ -66,12 +66,19 @@ export default ({navigation, route}) => {
         .set({
           chatWith: {[reciver]: ownerID.current},
         });
-      database()
-        .ref(`users/${reciver}`)
-        .set({
-          chatWith: {[sender]: ownerID.current},
-        });
-      setNewChat(false);
+
+      const reciverRef = database().ref(`users/${reciver}`);
+      reciverRef.once('value').then((snapshot) => {
+        let data = snapshot.val();
+
+        reciverRef
+          .set({
+            chatWith: {...data.chatWith, [[sender._id]]: ownerID.current},
+          })
+          .then(() => {
+            // setNewChat(false);
+          });
+      });
     }
     // setMessages((prevState) => GiftedChat.append(prevState, messages));
   };

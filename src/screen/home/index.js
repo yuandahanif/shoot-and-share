@@ -226,7 +226,7 @@ export default ({navigation, route}) => {
           <Text>Profile</Text>
         </Pressable>
         {/* ! Hide If Current User */}
-        {profileId === user.id ? null : (
+        {profileId === (user && user.id) ? null : (
           <Pressable
             style={styles.modalButton}
             options={{tabBarVisible: false}}
@@ -235,7 +235,7 @@ export default ({navigation, route}) => {
           </Pressable>
         )}
         {/* Change if current user */}
-        {profileId === user.id ? (
+        {profileId === (user && user.id) ? (
           <Pressable
             style={styles.modalButton}
             onPress={() => console.log('Laporkan', profileId)}>

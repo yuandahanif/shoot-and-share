@@ -1,21 +1,78 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {StyleSheet, View, Text, Image} from 'react-native';
-import {
-  GoogleSignin,
-  statusCodes,
-  GoogleSigninButton,
-} from '@react-native-community/google-signin';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
-import {RootContext} from '../../contexts';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 import {color} from '../../styles/color';
 
-export default function index({navigation}) {
-  const goToRegister = () => {
-    navigation.push('register');
+export default ({navigation}) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
+
+  const goToLogin = () => {
+    navigation.push('login');
   };
-  const signInWithGoogle = () => {};
+
+  const registerHandler = () => {
+    if (password !== '' && password === repeatPassword) {
+      if (name !== '') {
+        if (email !== '') {
+          auth()
+            .createUserWithEmailAndPassword(email, password)
+            .then((res) => {
+              const userRef = firestore().collection('users');
+
+              const timestamp = firestore.FieldValue.serverTimestamp();
+              const uid = res.user.uid;
+              const data = {
+                id: uid,
+                createdAt: timestamp,
+                name: name,
+                avatar_url: `https://ui-avatars.com/api/?name=${email}?background=0D8ABC&color=fff`,
+              };
+
+              userRef
+                .doc(uid)
+                .get()
+                .then((doc) => {
+                  if (doc.exists) {
+                    onRegisterSucces();
+                  } else {
+                    userRef
+                      .doc(uid)
+                      .set(data)
+                      .then(() => {
+                        onRegisterSucces();
+                      })
+                      .catch((e) => {
+                        console.log('firestore -> ', e);
+                      });
+                  }
+                });
+            })
+            .catch((err) => {
+              alert(
+                'Kesalahan saat mendaftar. \nmohon coba beberapa saat lagi.\n' +
+                  err,
+              );
+            });
+        }
+      }
+    }
+  };
+
+  const onRegisterSucces = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'app'}],
+    });
+  };
+
+  // const signInWithGoogle = () => {};
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.scrollView}>
@@ -31,6 +88,7 @@ export default function index({navigation}) {
               placeholder="Nama"
               style={styles.textInput}
               underlineColorAndroid="transparent"
+              onChangeText={(text) => setName(text)}
             />
           </View>
           <View style={styles.formGroup}>
@@ -39,6 +97,9 @@ export default function index({navigation}) {
               placeholder="Email"
               style={styles.textInput}
               underlineColorAndroid="transparent"
+              onChangeText={(text) => setEmail(text)}
+              autoCapitalize="none"
+              autoCompleteType="email"
             />
           </View>
           <View style={styles.formGroup}>
@@ -47,6 +108,9 @@ export default function index({navigation}) {
               placeholder="password"
               style={styles.textInput}
               underlineColorAndroid="transparent"
+              onChangeText={(text) => setPassword(text)}
+              autoCompleteType="password"
+              secureTextEntry={true}
             />
           </View>
           <View style={styles.formGroup}>
@@ -55,31 +119,21 @@ export default function index({navigation}) {
               placeholder="Ulangi password"
               style={styles.textInput}
               underlineColorAndroid="transparent"
+              onChangeText={(text) => setRepeatPassword(text)}
+              autoCompleteType="password"
+              secureTextEntry={true}
             />
           </View>
-          <TouchableOpacity style={styles.loginButton} activeOpacity={0.5}>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={registerHandler}
+            activeOpacity={0.5}>
             <Text style={styles.loginText}>Register</Text>
           </TouchableOpacity>
 
-          <View style={styles.lineContainer}>
-            <View style={styles.line} />
-            <Text>OR</Text>
-            <View style={styles.line} />
-          </View>
-
-          <GoogleSigninButton
-            style={{width: '100%', height: 48, elevation: 0}}
-            size={GoogleSigninButton.Size.Wide}
-            color={GoogleSigninButton.Color.Light}
-            onPress={signInWithGoogle}
-            disabled={null}
-          />
-
           <View style={styles.textRegisterContainer}>
             <Text>Sudah Punya Akun? </Text>
-            <TouchableOpacity
-              style={styles.registerButton}
-              onPress={goToRegister}>
+            <TouchableOpacity style={styles.registerButton} onPress={goToLogin}>
               <Text style={styles.registerButtonText}>Masuk</Text>
             </TouchableOpacity>
           </View>
@@ -87,7 +141,7 @@ export default function index({navigation}) {
       </View>
     </KeyboardAwareScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   scrollView: {

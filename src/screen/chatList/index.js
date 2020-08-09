@@ -46,8 +46,8 @@ export default ({navigation, route}) => {
                       },
                     ]);
                   }
-                  setIsFetching(false);
                 }
+                setIsFetching(false);
               });
           }
         }
@@ -89,6 +89,10 @@ export default ({navigation, route}) => {
 
   useEffect(() => {
     getChatList();
+
+    setTimeout(() => {
+      setIsFetching(false);
+    }, 5000);
     return () => {
       isMounted.current = true;
       const db = database().ref(`users/${user}`);
