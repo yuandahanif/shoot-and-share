@@ -70,14 +70,15 @@ export default ({navigation, route}) => {
       const reciverRef = database().ref(`users/${reciver}`);
       reciverRef.once('value').then((snapshot) => {
         let data = snapshot.val();
-
-        reciverRef
-          .set({
-            chatWith: {...data.chatWith, [[sender._id]]: ownerID.current},
-          })
-          .then(() => {
-            // setNewChat(false);
+        if (data) {
+          reciverRef.set({
+            chatWith: {...data.chatWith, [sender._id]: ownerID.current},
           });
+        } else {
+          reciverRef.set({
+            chatWith: {[sender._id]: ownerID.current},
+          });
+        }
       });
     }
     // setMessages((prevState) => GiftedChat.append(prevState, messages));
@@ -104,9 +105,16 @@ export default ({navigation, route}) => {
         const reciverRef = database().ref(`users/${reciver}`);
         reciverRef.once('value').then((snapshot) => {
           let data = snapshot.val();
-          reciverRef.set({
-            chatWith: {...data.chatWith, [ref]: id},
-          });
+
+          if (data) {
+            reciverRef.set({
+              chatWith: {...data.chatWith, [ref]: id},
+            });
+          } else {
+            reciverRef.set({
+              chatWith: {[ref]: id},
+            });
+          }
         });
       } else {
         setNewChat(true);

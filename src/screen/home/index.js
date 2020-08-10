@@ -7,6 +7,7 @@ import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import Image from 'react-native-fast-image';
+import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -198,6 +199,12 @@ export default ({navigation, route}) => {
     </View>
   );
 
+  const SkeletonRenderItem = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>Sedang memuat konten.</Text>
+    </View>
+  );
+
   const header = () => (
     <View style={[styles.author, styles.header]}>
       <TouchableOpacity style={styles.profile} onPress={gotoProfile}>
@@ -277,7 +284,7 @@ export default ({navigation, route}) => {
         ListHeaderComponent={header}
         data={articles}
         // TODO: skeleton loader . . .
-        ListEmptyComponent={() => <Text>Loading . . . </Text>}
+        ListEmptyComponent={SkeletonRenderItem}
         renderItem={_renderPost}
         keyExtractor={(data) => data.id}
         contentContainerStyle={styles.flatList}
@@ -388,5 +395,18 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     borderBottomColor: color.abuPutih,
     borderBottomWidth: 1,
+  },
+  // Empty list
+  emptyContainer: {
+    flex: 1,
+    marginTop: hp('50%'),
+    marginLeft: wp('50%'),
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  emptyText: {
+    color: color.hitamText,
+    fontSize: hp(2),
+    transform: [{translateX: - wp(25)}],
   },
 });
