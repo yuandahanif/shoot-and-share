@@ -6,8 +6,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Feather';
+import {connect} from 'react-redux';
 
-import {RootContext} from '../contexts';
+import {SetUser} from '../redux/actions/UserAction';
 
 // * screen
 import {
@@ -34,33 +35,33 @@ const Splash = () => (
 // Auth
 const AuthStack = createStackNavigator();
 const Auth = () => (
-  <AuthStack.Navigator initialRouteName="login" headerMode="none">
+  <AuthStack.Navigator initialRouteName="onBoard" headerMode="none">
+    <AuthStack.Screen name="onBoard" component={OnBoard} />
     <AuthStack.Screen name="login" component={Login} />
     <AuthStack.Screen name="register" component={Register} />
   </AuthStack.Navigator>
 );
 
 // Home
-const HomeStack = createStackNavigator();
-const HomeScreen = () => (
-  <HomeStack.Navigator initialRouteName="App">
-    <HomeStack.Screen
-      name="App"
-      component={App}
+const RootStack = createStackNavigator();
+const Root = () => (
+  <RootStack.Navigator initialRouteName="TabBar">
+    <RootStack.Screen
+      name="TabBar"
+      component={TabBar}
       options={{headerShown: false}}
     />
-    <HomeStack.Screen name="Chat" component={Chat} />
-    <HomeStack.Screen
+    <RootStack.Screen name="Chat" component={Chat} />
+    <RootStack.Screen
       name="ChatList"
       component={ChatList}
       options={{title: 'Chat History'}}
     />
-  </HomeStack.Navigator>
+  </RootStack.Navigator>
 );
 
 // App
-const AppStack = createBottomTabNavigator();
-
+const TabBarStack = createBottomTabNavigator();
 const TabView = ({route}) => ({
   tabBarIcon: ({color, size}) => {
     let iconName;
@@ -86,8 +87,8 @@ const TabView = ({route}) => ({
   },
 });
 
-const App = () => (
-  <AppStack.Navigator
+const TabBar = () => (
+  <TabBarStack.Navigator
     headerMode="none"
     initialRouteName="home"
     screenOptions={TabView}
@@ -96,58 +97,27 @@ const App = () => (
       inactiveTintColor: 'gray',
     }}>
     {/* Main */}
-    <AppStack.Screen
-      name="home"
-      component={Home}
-      // options={{tabBarVisible: isChatScreen ? false : true}}
-    />
-    <AppStack.Screen
+    <TabBarStack.Screen name="home" component={Home} />
+    <TabBarStack.Screen
       name="add"
       component={Add}
       options={{tabBarVisible: false}}
     />
-    <AppStack.Screen name="profile" component={Profile} />
-  </AppStack.Navigator>
+    <TabBarStack.Screen name="profile" component={Profile} />
+  </TabBarStack.Navigator>
 );
 
-export default () => {
+const Navigation = ({SetUser, isAuth}) => {
   const [splash, setSplash] = React.useState(true);
-  const [isAuth, setIsAuth] = React.useState(false);
-  const {setUser} = React.useContext(RootContext);
-
-  // Root
-  const RootStack = createStackNavigator();
-  const Root = () => (
-    <RootStack.Navigator initialRouteName={isAuth ? 'app' : 'onBoard'}>
-      <RootStack.Screen
-        name="onBoard"
-        component={OnBoard}
-        options={{headerShown: false}}
-      />
-      <RootStack.Screen
-        name="auth"
-        component={Auth}
-        options={{headerShown: false}}
-      />
-      <RootStack.Screen
-        name="app"
-        component={HomeScreen}
-        options={{headerShown: false}}
-      />
-    </RootStack.Navigator>
-  );
 
   React.useEffect(() => {
     auth().onAuthStateChanged(async (user) => {
       if (user !== null) {
         try {
-          const userRef = firestore().collection('users');
-          const document = await userRef.doc(user.uid).get();
-          const data = document.data();
-          setUser(data);
-          setIsAuth(true);
+          await SetUser(user.uid);
           setSplash(false);
         } catch (error) {
+          setSplash(false);
           console.log('check -> ', error);
         }
       } else {
@@ -157,6 +127,20 @@ export default () => {
   }, []);
 
   return (
-    <NavigationContainer>{splash ? <Splash /> : <Root />}</NavigationContainer>
+    <NavigationContainer>
+      {splash ? <Splash /> : isAuth ? <Root /> : <Auth />}
+    </NavigationContainer>
   );
 };
+
+const mapStateToProps = (state) => ({
+  isAuth: state.User.id,
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    SetUser: (data) => dispatch(SetUser(data)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Navigation);

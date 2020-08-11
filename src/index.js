@@ -1,9 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import firebase from '@react-native-firebase/app';
-import Navigation from './navigations';
-import {RootContext} from './contexts/index';
 import OneSignal from 'react-native-onesignal';
 import codePush from 'react-native-code-push';
+import {Provider} from 'react-redux';
+
+import Navigation from './navigations';
+import store from './redux/store';
 
 export default () => {
   // Your web app's Firebase configuration
@@ -91,13 +93,9 @@ export default () => {
   // current User
   const [user, setUser] = useState({});
 
-  // App config
-  const [isChatScreen, setIsChatScreen] = useState(false);
-
   return (
-    <RootContext.Provider
-      value={{user, setUser, isChatScreen, setIsChatScreen}}>
+    <Provider store={store}>
       <Navigation />
-    </RootContext.Provider>
+    </Provider>
   );
 };

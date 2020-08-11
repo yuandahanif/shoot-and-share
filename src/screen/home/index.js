@@ -12,13 +12,12 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
+import {connect} from 'react-redux';
 
 import {color} from '../../styles/color';
-import {RootContext} from '../../contexts';
 
-export default ({navigation, route}) => {
-  const {user: userFromContext} = useContext(RootContext);
-  const [user, setUser] = useState(userFromContext);
+const Home = ({navigation, route, user}) => {
+  // const [user, setUser] = useState(User);
   const isMounted = useRef(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [profileId, setProfileId] = useState(null);
@@ -33,7 +32,7 @@ export default ({navigation, route}) => {
     .limit(articleLimit);
 
   const getUser = () => {
-    if (!userFromContext) {
+    if (true) {
       const uid = auth().currentUser.uid;
       firestore()
         .doc(`users/${uid}`)
@@ -133,7 +132,7 @@ export default ({navigation, route}) => {
 
   useEffect(() => {
     firstArticle();
-    getUser();
+    // getUser();
     return () => {
       isMounted.current = true;
     };
@@ -293,6 +292,18 @@ export default ({navigation, route}) => {
   );
 };
 
+const mapStateToProps = (state) => ({
+  user: state.User,
+});
+
+// const mapDispatchToProps = (dispatch) => {
+// return {
+// : () => dispatch(),
+// };
+// };
+
+export default connect(mapStateToProps, null)(Home);
+
 const styles = StyleSheet.create({
   flatList: {},
   header: {
@@ -407,6 +418,6 @@ const styles = StyleSheet.create({
   emptyText: {
     color: color.hitamText,
     fontSize: hp(2),
-    transform: [{translateX: - wp(25)}],
+    transform: [{translateX: -wp(25)}],
   },
 });

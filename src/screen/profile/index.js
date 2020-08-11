@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Image,
-  Dimensions,
   Modal,
   Pressable,
   FlatList,
@@ -13,17 +12,17 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import {GoogleSignin} from '@react-native-community/google-signin';
+import {connect} from 'react-redux';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
+
+import {Logout} from '../../redux/actions/UserAction';
 import {color} from '../../styles/color';
 
-const DEVICE = Dimensions.get('window');
-
-export default ({navigation}) => {
-  const [user, setUser] = useState({});
+const Profile = ({navigation, user, LogoutFunc}) => {
+  // const [user, setUser] = useState({});
 
   const data = [
     {
@@ -70,44 +69,17 @@ export default ({navigation}) => {
     },
   ];
 
-  const getUser = async () => {
-    const uid = auth().currentUser.uid;
-    const doc = await firestore().doc(`users/${uid}`).get();
-    const data = doc.data();
-    setUser(data);
-  };
-
   // const getUserPost = () => {
   //   firestore().doc('articles').
   // }
 
-  useEffect(() => {
-    const init = async () => {
-      await getUser();
-    };
-    init();
-  }, []);
+  // useEffect(() => {
+  // }, []);
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const logout = () => {
-    auth()
-      .signOut()
-      .then(async () => {
-        try {
-          GoogleSignin.configure({
-            offlineAccess: false,
-            webClientId:
-              '1023844666896-vcfi0rqodn9unv3kvabqbgtk6f0qn6qf.apps.googleusercontent.com',
-          });
-          await GoogleSignin.revokeAccess();
-          await GoogleSignin.signOut();
-          navigation.reset({index: 0, routes: [{name: 'auth'}]});
-        } catch (error) {
-          navigation.reset({index: 0, routes: [{name: 'auth'}]});
-          console.log('logout -> error', error);
-        }
-      });
+    LogoutFunc();
   };
 
   const _renderItem = ({item}) => (
@@ -211,6 +183,18 @@ export default ({navigation}) => {
     </View>
   );
 };
+
+const mapStateToProps = (state) => ({
+  user: state.User,
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    LogoutFunc: () => dispatch(Logout()),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Profile);
 
 const styles = StyleSheet.create({
   flatList: {

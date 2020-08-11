@@ -2,7 +2,7 @@ import Type from '../actions/Type';
 
 const userState = {
   id: '',
-  avatar: '',
+  avatar_url: '',
   name: '',
   createdAt: '',
   articles: [{id: '', path: '', love: '', createdAt: ''}],
@@ -14,11 +14,8 @@ const userState = {
 // here wiil be used for chats, articles, and profile.
 export default (state = userState, action) => {
   switch (action.type) {
-    case Type.LOGIN: // * Just set id, avatar, name, and createdAt.
-      return {...state, ...action.payload};
-
     case Type.LOGOUT: // * delete all data from redux. default it will deleted every app closed.
-      return {...userState};
+      return {};
 
     case Type.GET_USER: // * get all current user data.
       return state;

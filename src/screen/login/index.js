@@ -1,18 +1,14 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View, Text, Image} from 'react-native';
-import {
-  GoogleSignin,
-  statusCodes,
-  GoogleSigninButton,
-} from '@react-native-community/google-signin';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import {GoogleSigninButton} from '@react-native-community/google-signin';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
+import {connect} from 'react-redux';
 
+import {LoginAction} from '../../redux/actions/UserAction';
 import {color} from '../../styles/color';
 
-export default ({navigation}) => {
+const Login = ({navigation, LoginFunc}) => {
   // const {setUser} = useContext(RootContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,91 +18,11 @@ export default ({navigation}) => {
   };
 
   const onLogin = () => {
-    auth()
-      .signInWithEmailAndPassword(email, password)
-      .then((res) => {
-        const userRef = firestore().collection('users');
-        const uid = res.user.uid;
-
-        userRef
-          .doc(uid)
-          .get()
-          .then((doc) => {
-            if (doc.exists) {
-              onLoginSucces();
-            }
-          });
-      })
-      .catch((err) => {
-        alert('Kesalahan saat login. \nmohon coba beberapa saat lagi.\n' + err);
-      });
-  };
-
-  const onLoginSucces = (data) => {
-    // setUser(data);
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'app'}],
-    });
+    LoginFunc(email, password);
   };
 
   const signInWithGoogle = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      GoogleSignin.configure({
-        offlineAccess: false,
-        webClientId:
-          '1023844666896-vcfi0rqodn9unv3kvabqbgtk6f0qn6qf.apps.googleusercontent.com',
-      });
-      const {idToken} = await GoogleSignin.signIn();
-      const cred = auth.GoogleAuthProvider.credential(idToken);
-      auth()
-        .signInWithCredential(cred)
-        .then((res) => {
-          const userRef = firestore().collection('users');
-
-          const timestamp = firestore.FieldValue.serverTimestamp();
-          const uid = res.user.uid;
-          const data = {
-            id: uid,
-            createdAt: timestamp,
-            name: res.user.displayName,
-            avatar_url: res.user.photoURL,
-          };
-
-          userRef
-            .doc(uid)
-            .get()
-            .then((doc) => {
-              if (doc.exists) {
-                onLoginSucces(data);
-              } else {
-                userRef
-                  .doc(uid)
-                  .set(data)
-                  .then(() => {
-                    onLoginSucces(data);
-                  })
-                  .catch((e) => {
-                    console.log('firestore -> ', e);
-                  });
-              }
-            });
-        })
-        .catch((err) => console.log('firebase auth -> ', err));
-    } catch (error) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('user membatalkan signIn');
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('signIn sedang dalam proses');
-        alert('sedang masuk, harap tunggu . . . ');
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Tidak ada layanan google play service');
-        alert('Tidak ada layanan google play service');
-      } else {
-        console.log('Jaringan/Sistem bermasalah', error);
-      }
-    }
+    LoginFunc();
   };
 
   return (
@@ -173,6 +89,14 @@ export default ({navigation}) => {
     </KeyboardAwareScrollView>
   );
 };
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    LoginFunc: (...data) => dispatch(LoginAction(...data)),
+  };
+};
+
+export default connect(null, mapDispatchToProps)(Login);
 
 const styles = StyleSheet.create({
   scrollView: {

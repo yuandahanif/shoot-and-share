@@ -45,7 +45,7 @@ export default function index({navigation}) {
   const onDone = () => {
     navigation.reset({
       index: 0,
-      routes: [{name: 'auth'}],
+      routes: [{name: 'login'}],
     });
   };
 
