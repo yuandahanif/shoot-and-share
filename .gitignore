@@ -1,3 +1,6 @@
+#my list
+*.hprof
+
 # OSX
 #
 .DS_Store

@@ -61,6 +61,13 @@ export default ({navigation}) => {
       image_url: require('../../assets/images/undraw_camera_mg5h.png'),
       like: 121,
     },
+    {
+      uid: '13143424112',
+      name: 'snowsant',
+      avatar_url: require('../../assets/images/snowsant-profile.png'),
+      image_url: require('../../assets/images/snowsant-profile.png'),
+      like: 123,
+    },
   ];
 
   const getUser = async () => {
