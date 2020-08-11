@@ -12,6 +12,7 @@ import {
 import {RootContext} from '../../contexts/index';
 
 // TODO: ganti aja get user jangan dari context.
+// TODO: rewrite the logic in firebase function.
 
 export default ({navigation, route}) => {
   const {user} = useContext(RootContext);
@@ -146,15 +147,6 @@ export default ({navigation, route}) => {
       db.off();
     };
   }, []);
-
-  //   i need : my id, rechiver id, chat room id, room id, chat data.
-
-  // get my id
-  // get the reciver id
-  // get chat room id from my id + reciver id
-  //  verify chat room owner
-  // get chat data by chat room id
-  // get first 25 chat and loop it
 
   return (
     <View style={styles.container}>

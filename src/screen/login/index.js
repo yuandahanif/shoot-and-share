@@ -9,11 +9,8 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
-import {CommonActions} from '@react-navigation/native';
-import {RootContext} from '../../contexts';
 
 import {color} from '../../styles/color';
-import index from '../splashscreen';
 
 export default ({navigation}) => {
   // const {setUser} = useContext(RootContext);
@@ -24,7 +21,6 @@ export default ({navigation}) => {
     navigation.push('register');
   };
 
-  // TODO: ADD login func
   const onLogin = () => {
     auth()
       .signInWithEmailAndPassword(email, password)
