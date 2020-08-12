@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/Feather';
 import Modal from 'react-native-modal';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
-import auth from '@react-native-firebase/auth';
 import Image from 'react-native-fast-image';
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import {
@@ -14,10 +13,13 @@ import {
 } from 'react-native-responsive-screen';
 import {connect} from 'react-redux';
 
+// * Components
+import _renderItemArticle from '../../components/_renderItemArticle';
+import _headerArticles from '../../components/_headerArticles';
+
 import {color} from '../../styles/color';
 
 const Home = ({navigation, route, user, Article}) => {
-  // const [user, setUser] = useState(User);
   const isMounted = useRef(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [profileId, setProfileId] = useState(null);
@@ -30,19 +32,6 @@ const Home = ({navigation, route, user, Article}) => {
     .collection('articles')
     .orderBy('createdAt', 'desc')
     .limit(articleLimit);
-
-  const getUser = () => {
-    if (true) {
-      const uid = auth().currentUser.uid;
-      firestore()
-        .doc(`users/${uid}`)
-        .get()
-        .then((data) => {
-          const user = data.data();
-          setUser(user);
-        });
-    }
-  };
 
   const firstArticle = () => {
     articleRef.get().then(async (documents) => {
@@ -126,110 +115,19 @@ const Home = ({navigation, route, user, Article}) => {
     navigation.navigate('Chat', {reciverId: id});
   };
 
-  const gotoProfile = () => navigation.navigate('profile');
-
-  const gotoChatList = () => navigation.navigate('Contacts', {id: user.id});
-
   useEffect(() => {
     firstArticle();
-    // getUser();
     return () => {
       isMounted.current = true;
     };
   }, []);
 
   // * Article screen
-  const ImageArticle = ({uri}) => (
-    <View style={styles.imageContainer}>
-      <Image
-        source={{uri: uri || null}}
-        style={styles.image}
-        resizeMode={Image.resizeMode.cover}
-      />
-    </View>
-  );
-
-  const dateConvert = (time) => {
-    const date = new Date(time * 1000);
-    let month = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return `${date.getDate()} ${month[date.getMonth()]} ${date.getFullYear()}`;
-  };
-
-  const _renderPost = ({item}) => (
-    <View style={styles.container}>
-      <View style={styles.author}>
-        <TouchableOpacity style={styles.profile}>
-          <Image
-            source={{uri: item.author && item.author.avatar_url}}
-            style={styles.avatar}
-            resizeMode={Image.resizeMode.cover}
-          />
-          <Text style={styles.name}>{item.author && item.author.name}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon
-            name="more-vertical"
-            size={16}
-            onPress={() => openModal(item.author.id)}
-          />
-        </TouchableOpacity>
-      </View>
-      <ImageArticle uri={item.fileName} />
-      <View style={styles.description}>
-        <TouchableOpacity style={styles.love}>
-          <Icon name="thumbs-up" size={16} color="red" />
-          <Text style={styles.loveCount}>{item.love}</Text>
-        </TouchableOpacity>
-        <Text>{dateConvert(item.createdAt._seconds)}</Text>
-      </View>
-    </View>
-  );
 
   const SkeletonRenderItem = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>Sedang memuat konten.</Text>
     </View>
-  );
-
-  const header = () => (
-    <>
-      <View style={[styles.author, styles.header]}>
-        <TouchableOpacity style={styles.profile} onPress={gotoProfile}>
-          <Image
-            source={{uri: user && user.avatar_url}}
-            style={[styles.avatar, styles.userAvatar]}
-            resizeMode={Image.resizeMode.cover}
-          />
-          <Text style={[styles.name, styles.username]}>
-            {user && user.name}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={gotoChatList}>
-          <Icon name="message-square" size={20} color={color.hitamAbu} />
-        </TouchableOpacity>
-      </View>
-      <View>
-        {console.log(Article.upload)}
-        <Text>
-          {typeof Article.upload[0] !== 'undefined'
-            ? `${Article.upload[0].progress}%`
-            : 'tidak ada'}
-        </Text>
-      </View>
-    </>
   );
 
   const MoreModal = () => (
@@ -292,13 +190,16 @@ const Home = ({navigation, route, user, Article}) => {
         onEndReached={nextArticles}
         onEndReachedThreshold={0.5}
         stickyHeaderIndices={[0]}
-        ListHeaderComponent={header}
+        ListHeaderComponent={() =>
+          _headerArticles({user, navigation, progress: Article.upload})
+        }
         data={articles}
         // TODO: skeleton loader . . .
         ListEmptyComponent={SkeletonRenderItem}
-        renderItem={_renderPost}
+        renderItem={({item}) => _renderItemArticle({item, openModal})}
         keyExtractor={(data) => data.id}
         contentContainerStyle={styles.flatList}
+        ListHeaderComponentStyle={styles.header}
       />
     </View>
   );
@@ -319,91 +220,7 @@ export default connect(mapStateToProps, null)(Home);
 
 const styles = StyleSheet.create({
   flatList: {},
-  header: {
-    marginBottom: 20,
-    paddingHorizontal: 20,
-  },
-  userAvatar: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'grey',
-  },
-  username: {
-    fontSize: 16,
-  },
-  container: {
-    marginHorizontal: 20,
-    backgroundColor: 'white',
-    height: 400,
-    justifyContent: 'flex-start',
-    alignItems: 'stretch',
-    overflow: 'hidden',
-    marginBottom: 15,
-    borderRadius: 6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-
-    elevation: 5,
-  },
-  author: {
-    padding: 10,
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-
-    elevation: 2,
-  },
-  profile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    height: 30,
-    width: 30,
-    resizeMode: 'cover',
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  name: {
-    marginLeft: 10,
-  },
-  imageContainer: {
-    width: '100%',
-    height: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    // resizeMode: 'cover',
-  },
-  description: {
-    padding: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  love: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loveCount: {
-    marginLeft: 5,
-  },
+  header: {marginBottom: hp(2)},
   // * Modal
   modal: {
     backgroundColor: 'white',

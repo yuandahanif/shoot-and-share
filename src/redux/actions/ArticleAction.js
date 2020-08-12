@@ -57,7 +57,7 @@ export const UploadArticles = (id, uri) => {
 
     // * On upload process.
     upload.on('state_changed', (progress) => {
-      let precent = (progress.bytesTransferred / progress.totalBytes) * 100;
+      let precent = (progress.bytesTransferred / progress.totalBytes) * 10;
       let precentRound = Math.round(precent);
       dispatch(
         updateUploadProgress({
