@@ -7,20 +7,15 @@ const userState = {
   createdAt: '',
 };
 
-const articleState = {
-  articles: [{id: '', path: '', love: '', createdAt: ''}],
-};
-
-const contactState = {
-  chatWith: [
-    {
-      _id: '',
-      name: '',
-      avatar: '',
-      roomId: '',
-    },
-  ],
-};
+const articleState = [{id: '', path: '', love: '', createdAt: ''}];
+const contactState = [
+  {
+    _id: '',
+    name: '',
+    avatar: '',
+    roomId: '',
+  },
+];
 
 const chatsState = [{id: '', chats: []}];
 
@@ -67,6 +62,7 @@ export const UserContacts = (state = contactState, action) => {
   }
 };
 
+// * User chat.
 export const UserChats = (state = chatsState, action) => {
   switch (action.type) {
     case Type.GET_CHAT:

@@ -6,11 +6,11 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
-import {RootContext} from '../../contexts';
+import {connect} from 'react-redux';
 
-export default function Add({navigation}) {
-  const {user} = useContext(RootContext);
+import {UploadArticles} from '../../redux/actions/ArticleAction';
 
+const Add = ({navigation, user, Upload}) => {
   const camera = useRef();
   const [photo, setPhoto] = useState({});
   const [type, setType] = useState('back');
@@ -76,39 +76,40 @@ export default function Add({navigation}) {
   );
 
   const uploadtoFirebase = () => {
-    const timestamp = new Date().getTime();
-    const fileName = `${user.id}-${timestamp}`;
-    const upload = storage()
-      .ref(`/articles/images/${fileName}`)
-      .putFile(photo.uri, {cacheControl: 'public, max-age=3600'});
-    upload.then((snapshot) => {
-      const serverTimestamp = firestore.FieldValue.serverTimestamp();
-      const articleRef = firestore().collection('articles');
-      const userRef = firestore().collection('users');
+    Upload(user.id, photo.uri);
+    // const timestamp = new Date().getTime();
+    // const fileName = `${user.id}-${timestamp}`;
+    // const upload = storage()
+    //   .ref(`/articles/images/${fileName}`)
+    //   .putFile(photo.uri, {cacheControl: 'public, max-age=3600'});
+    // upload.then((snapshot) => {
+    //   const serverTimestamp = firestore.FieldValue.serverTimestamp();
+    //   const articleRef = firestore().collection('articles');
+    //   const userRef = firestore().collection('users');
 
-      articleRef
-        .doc(fileName)
-        .set({
-          id: fileName,
-          author: userRef.doc(user.id),
-          fileName: snapshot.metadata.fullPath,
-          createdAt: serverTimestamp,
-          love: 0,
-        })
-        .then(() => {
-          alert('upload success!');
-        });
-    });
+    //   articleRef
+    //     .doc(fileName)
+    //     .set({
+    //       id: fileName,
+    //       author: userRef.doc(user.id),
+    //       fileName: snapshot.metadata.fullPath,
+    //       createdAt: serverTimestamp,
+    //       love: 0,
+    //     })
+    //     .then(() => {
+    //       alert('upload success!');
+    //     });
+    // });
 
-    upload.on('state_changed', (progress) => {
-      console.log(
-        `transfer data ${progress.bytesTransferred} dari ${progress.totalBytes}`,
-      );
-    });
+    // upload.on('state_changed', (progress) => {
+    //   console.log(
+    //     `transfer data ${progress.bytesTransferred} dari ${progress.totalBytes}`,
+    //   );
+    // });
 
-    upload.catch((err) => {
-      console.log('error upload photo -> ', err);
-    });
+    // upload.catch((err) => {
+    //   console.log('error upload photo -> ', err);
+    // });
   };
 
   return (
@@ -128,7 +129,19 @@ export default function Add({navigation}) {
       ) : null}
     </View>
   );
-}
+};
+
+const mapStateToProps = (state) => ({
+  user: state.User,
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    Upload: (...data) => dispatch(UploadArticles(...data)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Add);
 
 const styles = StyleSheet.create({
   container: {

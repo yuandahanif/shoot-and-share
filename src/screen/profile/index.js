@@ -1,18 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  Modal,
-  Pressable,
-  FlatList,
-} from 'react-native';
+import {StyleSheet, Text, View, Modal, Pressable, FlatList} from 'react-native';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {connect} from 'react-redux';
+import Image from 'react-native-fast-image';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -22,8 +15,6 @@ import {Logout} from '../../redux/actions/UserAction';
 import {color} from '../../styles/color';
 
 const Profile = ({navigation, user, LogoutFunc}) => {
-  // const [user, setUser] = useState({});
-
   const data = [
     {
       uid: '131412412412',
@@ -68,10 +59,6 @@ const Profile = ({navigation, user, LogoutFunc}) => {
       like: 123,
     },
   ];
-
-  // const getUserPost = () => {
-  //   firestore().doc('articles').
-  // }
 
   // useEffect(() => {
   // }, []);

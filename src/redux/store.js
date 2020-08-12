@@ -8,6 +8,14 @@ import {
   UserChats,
 } from './reducers/UserReducer';
 
-const reducers = combineReducers({User, UserArticles, UserContacts, UserChats});
+import {Article} from './reducers/ArticleReducer';
+
+const reducers = combineReducers({
+  User,
+  UserArticles,
+  UserContacts,
+  UserChats,
+  Article,
+});
 
 export default createStore(reducers, applyMiddleware(thunk));

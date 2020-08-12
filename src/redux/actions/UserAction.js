@@ -174,3 +174,8 @@ export const SetContacts = (id) => {
     });
   };
 };
+
+// * Get All Articles Belonges To current users.
+export const GetUserArticles = (id) => {
+  return (dispatch) => {};
+};

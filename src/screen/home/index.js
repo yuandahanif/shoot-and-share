@@ -16,7 +16,7 @@ import {connect} from 'react-redux';
 
 import {color} from '../../styles/color';
 
-const Home = ({navigation, route, user}) => {
+const Home = ({navigation, route, user, Article}) => {
   // const [user, setUser] = useState(User);
   const isMounted = useRef(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -205,19 +205,31 @@ const Home = ({navigation, route, user}) => {
   );
 
   const header = () => (
-    <View style={[styles.author, styles.header]}>
-      <TouchableOpacity style={styles.profile} onPress={gotoProfile}>
-        <Image
-          source={{uri: user && user.avatar_url}}
-          style={[styles.avatar, styles.userAvatar]}
-          resizeMode={Image.resizeMode.cover}
-        />
-        <Text style={[styles.name, styles.username]}>{user && user.name}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={gotoChatList}>
-        <Icon name="message-square" size={20} color={color.hitamAbu} />
-      </TouchableOpacity>
-    </View>
+    <>
+      <View style={[styles.author, styles.header]}>
+        <TouchableOpacity style={styles.profile} onPress={gotoProfile}>
+          <Image
+            source={{uri: user && user.avatar_url}}
+            style={[styles.avatar, styles.userAvatar]}
+            resizeMode={Image.resizeMode.cover}
+          />
+          <Text style={[styles.name, styles.username]}>
+            {user && user.name}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={gotoChatList}>
+          <Icon name="message-square" size={20} color={color.hitamAbu} />
+        </TouchableOpacity>
+      </View>
+      <View>
+        {console.log(Article.upload)}
+        <Text>
+          {typeof Article.upload[0] !== 'undefined'
+            ? `${Article.upload[0].progress}%`
+            : 'tidak ada'}
+        </Text>
+      </View>
+    </>
   );
 
   const MoreModal = () => (
@@ -294,6 +306,7 @@ const Home = ({navigation, route, user}) => {
 
 const mapStateToProps = (state) => ({
   user: state.User,
+  Article: state.Article,
 });
 
 // const mapDispatchToProps = (dispatch) => {
