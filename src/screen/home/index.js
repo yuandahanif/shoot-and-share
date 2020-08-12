@@ -128,7 +128,7 @@ const Home = ({navigation, route, user}) => {
 
   const gotoProfile = () => navigation.navigate('profile');
 
-  const gotoChatList = () => navigation.navigate('ChatList', {id: user.id});
+  const gotoChatList = () => navigation.navigate('Contacts', {id: user.id});
 
   useEffect(() => {
     firstArticle();

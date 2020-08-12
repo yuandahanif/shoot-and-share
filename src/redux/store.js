@@ -1,8 +1,13 @@
 import {combineReducers, applyMiddleware, createStore} from 'redux';
 import thunk from 'redux-thunk';
 
-import UserReducer from './reducers/UserReducer';
+import {
+  User,
+  UserArticles,
+  UserContacts,
+  UserChats,
+} from './reducers/UserReducer';
 
-const reducers = combineReducers({User: UserReducer});
+const reducers = combineReducers({User, UserArticles, UserContacts, UserChats});
 
 export default createStore(reducers, applyMiddleware(thunk));

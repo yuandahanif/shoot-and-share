@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useContext, useRef} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GiftedChat} from 'react-native-gifted-chat';
 import database from '@react-native-firebase/database';
 import firestore from '@react-native-firebase/firestore';

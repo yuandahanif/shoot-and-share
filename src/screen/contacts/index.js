@@ -11,47 +11,49 @@ import firestore from '@react-native-firebase/firestore';
 import database from '@react-native-firebase/database';
 import TouchID from 'react-native-touch-id';
 import Modal from 'react-native-modal';
+import {connect} from 'react-redux';
 
+import {SetContacts} from '../../redux/actions/UserAction';
 import {color} from '../../styles/color';
 
-export default ({navigation, route}) => {
-  const [user, setUser] = useState(route.params.id);
+const Contacts = ({navigation, route, user, SetContacts, contacts}) => {
+  // const [user, setUser] = useState(route.params.id);
   const [chats, setChats] = useState([]);
-  const isMounted = useRef(false);
-  const [isFetching, setIsFetching] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [chatID, setChatID] = useState(null);
 
   const getChatList = () => {
-    database()
-      .ref(`users/${user}`)
-      .on('child_added', (snapshot) => {
-        let data = snapshot.val();
-        for (const chat in data) {
-          if (data.hasOwnProperty(chat)) {
-            firestore()
-              .doc(`users/${chat}`)
-              .get()
-              .then((doc) => {
-                if (doc.exists) {
-                  const user = doc.data();
-                  if (!isMounted.current) {
-                    setChats((prevState) => [
-                      ...prevState,
-                      {
-                        _id: user.id,
-                        name: user.name,
-                        avatar: user.avatar_url,
-                        chatId: chat,
-                      },
-                    ]);
-                  }
-                }
-                setIsFetching(false);
-              });
-          }
-        }
-      });
+    SetContacts(user.id);
+    // database()
+    //   .ref(`users/${user}`)
+    //   .on('child_added', (snapshot) => {
+    //     let data = snapshot.val();
+    //     for (const chat in data) {
+    //       if (data.hasOwnProperty(chat)) {
+    //         firestore()
+    //           .doc(`users/${chat}`)
+    //           .get()
+    //           .then((doc) => {
+    //             if (doc.exists) {
+    //               const user = doc.data();
+    //               if (!isMounted.current) {
+    //                 setChats((prevState) => [
+    //                   ...prevState,
+    //                   {
+    //                     _id: user.id,
+    //                     name: user.name,
+    //                     avatar: user.avatar_url,
+    //                     chatId: chat,
+    //                   },
+    //                 ]);
+    //               }
+    //             }
+    //             setIsFetching(false);
+    //           });
+    //       }
+    //     }
+    //   });
   };
 
   const deleteChat = () => {
@@ -90,12 +92,12 @@ export default ({navigation, route}) => {
   useEffect(() => {
     getChatList();
 
-    setTimeout(() => {
-      setIsFetching(false);
-    }, 5000);
+    // setTimeout(() => {
+    //   setIsFetching(false);
+    // }, 5000);
     return () => {
-      isMounted.current = true;
-      const db = database().ref(`users/${user}`);
+      // isMounted.current = true;
+      const db = database().ref(`users/${user.id}`);
       if (db) {
         db.off();
       }
@@ -159,6 +161,19 @@ export default ({navigation, route}) => {
     </View>
   );
 };
+
+const mapStateToProps = (state) => ({
+  user: state.User,
+  contacts: state.UserContacts,
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    SetContacts: (data) => dispatch(SetContacts(data)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Contacts);
 
 const styles = StyleSheet.create({
   emptyContainer: {

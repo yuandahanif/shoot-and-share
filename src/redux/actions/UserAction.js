@@ -1,20 +1,14 @@
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import {GoogleSignin, statusCodes} from '@react-native-community/google-signin';
+import database from '@react-native-firebase/database';
+import {GoogleSignin} from '@react-native-community/google-signin';
 
+import {
+  USER_REF,
+  googleConfig,
+  googleSiginErrorHandler,
+} from './functions/authFunc';
 import Type from './Type';
-
-// * database ref
-const USER_REF = firestore().collection('users');
-
-// * util
-const googleConfig = () => {
-  GoogleSignin.configure({
-    offlineAccess: false,
-    webClientId:
-      '1023844666896-vcfi0rqodn9unv3kvabqbgtk6f0qn6qf.apps.googleusercontent.com',
-  });
-};
 
 // dispatcher
 const setUser = (payload) => ({
@@ -26,7 +20,12 @@ const logout = () => ({
   type: Type.LOGOUT,
 });
 
-// * LOGIN *********************
+const contacts = (payload) => ({
+  type: Type.SET_CONTACTS,
+  payload,
+});
+
+// * LOGIN *********************************
 export const LoginAction = (email = null, password = null) => {
   return async (dispatch) => {
     // * Login with Google.
@@ -56,17 +55,7 @@ export const LoginAction = (email = null, password = null) => {
           dispatch(setUser(data));
         }
       } catch (error) {
-        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-          console.log('user membatalkan signIn');
-        } else if (error.code === statusCodes.IN_PROGRESS) {
-          console.log('signIn sedang dalam proses');
-          alert('sedang masuk, harap tunggu . . . ');
-        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-          console.log('Tidak ada layanan google play service');
-          alert('Tidak ada layanan google play service');
-        } else {
-          console.log('LoginAction -> error', error);
-        }
+        googleSiginErrorHandler(error);
       }
     } else {
       // * Login using username and password.
@@ -88,7 +77,7 @@ export const LoginAction = (email = null, password = null) => {
   };
 };
 
-//  * SIMIILAR AS LOGIN.
+//  * SIMIILAR AS LOGIN. *********************************
 export const SetUser = (uid) => {
   return async (dispatch) => {
     try {
@@ -100,6 +89,41 @@ export const SetUser = (uid) => {
   };
 };
 
+// * REGISTER.
+export const RegisterAction = (email, password, name) => {
+  return async (dispatch) => {
+    try {
+      const {user} = await auth().createUserWithEmailAndPassword(
+        email,
+        password,
+      );
+
+      const uid = user.uid;
+      const data = {
+        id: uid,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        name: name,
+        avatar_url: `https://ui-avatars.com/api/?name=${email}?background=0D8ABC&color=fff`,
+      };
+
+      // *Check if user already exist.
+      const doc = await USER_REF.doc(uid).get();
+      if (doc.exists) {
+        dispatch(setUser(doc.data()));
+      } else {
+        await USER_REF.doc(uid).set(data);
+        dispatch(setUser(data));
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-alert
+      alert(
+        'Kesalahan saat mendaftar. \nmohon coba beberapa saat lagi.\n' + error,
+      );
+    }
+  };
+};
+
+// * LOGOUT. *********************************
 export const Logout = () => {
   return async (dispatch) => {
     try {
@@ -114,5 +138,39 @@ export const Logout = () => {
     } catch (error) {
       console.log('Logout -> error', error);
     }
+  };
+};
+
+// * Get All Contacts.
+export const SetContacts = (id) => {
+  const userRef = database().ref(`users/${id}`);
+  return (dispatch) => {
+    userRef.on('child_added', (snapshot) => {
+      let data = snapshot.val();
+      console.log('SetContacts -> data', data);
+      for (const chat in data) {
+        // console.log('SetContacts -> chat', chat);
+        if (data.hasOwnProperty(chat)) {
+          firestore()
+            .doc(`users/${chat}`)
+            .get()
+            .then((doc) => {
+              if (doc.exists) {
+                const user = doc.data();
+                dispatch((prevState) => [
+                  ...prevState,
+                  {
+                    _id: user.id,
+                    name: user.name,
+                    avatar: user.avatar_url,
+                    chatId: chat,
+                  },
+                ]);
+              }
+            });
+        }
+      }
+      dispatch(contacts(data));
+    });
   };
 };

@@ -2,12 +2,12 @@ import React, {useContext, useState} from 'react';
 import {StyleSheet, View, Text, Image} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import {connect} from 'react-redux';
 
+import {RegisterAction} from '../../redux/actions/UserAction';
 import {color} from '../../styles/color';
 
-export default ({navigation}) => {
+const Register = ({navigation, RegisterAction}) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,58 +21,11 @@ export default ({navigation}) => {
     if (password !== '' && password === repeatPassword) {
       if (name !== '') {
         if (email !== '') {
-          auth()
-            .createUserWithEmailAndPassword(email, password)
-            .then((res) => {
-              const userRef = firestore().collection('users');
-
-              const timestamp = firestore.FieldValue.serverTimestamp();
-              const uid = res.user.uid;
-              const data = {
-                id: uid,
-                createdAt: timestamp,
-                name: name,
-                avatar_url: `https://ui-avatars.com/api/?name=${email}?background=0D8ABC&color=fff`,
-              };
-
-              userRef
-                .doc(uid)
-                .get()
-                .then((doc) => {
-                  if (doc.exists) {
-                    onRegisterSucces();
-                  } else {
-                    userRef
-                      .doc(uid)
-                      .set(data)
-                      .then(() => {
-                        onRegisterSucces();
-                      })
-                      .catch((e) => {
-                        console.log('firestore -> ', e);
-                      });
-                  }
-                });
-            })
-            .catch((err) => {
-              alert(
-                'Kesalahan saat mendaftar. \nmohon coba beberapa saat lagi.\n' +
-                  err,
-              );
-            });
+          RegisterAction(email, password, name);
         }
       }
     }
   };
-
-  const onRegisterSucces = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'app'}],
-    });
-  };
-
-  // const signInWithGoogle = () => {};
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.scrollView}>
@@ -89,6 +42,7 @@ export default ({navigation}) => {
               style={styles.textInput}
               underlineColorAndroid="transparent"
               onChangeText={(text) => setName(text)}
+              autoCapitalize="words"
             />
           </View>
           <View style={styles.formGroup}>
@@ -142,6 +96,18 @@ export default ({navigation}) => {
     </KeyboardAwareScrollView>
   );
 };
+
+// const mapStateToProps = (state) => ({
+// : state.,
+// });
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    RegisterAction: (...data) => dispatch(RegisterAction(...data)),
+  };
+};
+
+export default connect(null, mapDispatchToProps)(Register);
 
 const styles = StyleSheet.create({
   scrollView: {

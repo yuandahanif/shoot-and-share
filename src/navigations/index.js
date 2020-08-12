@@ -20,7 +20,7 @@ import {
   OnBoard,
   Add,
   Chat,
-  ChatList,
+  contacts,
 } from '../screen';
 import {color} from '../styles/color';
 
@@ -53,8 +53,8 @@ const Root = () => (
     />
     <RootStack.Screen name="Chat" component={Chat} />
     <RootStack.Screen
-      name="ChatList"
-      component={ChatList}
+      name="Contacts"
+      component={contacts}
       options={{title: 'Chat History'}}
     />
   </RootStack.Navigator>

@@ -6,7 +6,7 @@ import OnBoard from './onBoard';
 import Profile from './profile';
 import Add from './article/add';
 import Chat from './chat';
-import ChatList from './chatList';
+import contacts from './contacts';
 
 export {
   Splashscreen,
@@ -17,5 +17,5 @@ export {
   Profile,
   Add,
   Chat,
-  ChatList,
+  contacts,
 };
