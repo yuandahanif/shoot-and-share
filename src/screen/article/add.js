@@ -77,39 +77,6 @@ const Add = ({navigation, user, Upload}) => {
 
   const uploadtoFirebase = () => {
     Upload(user.id, photo.uri);
-    // const timestamp = new Date().getTime();
-    // const fileName = `${user.id}-${timestamp}`;
-    // const upload = storage()
-    //   .ref(`/articles/images/${fileName}`)
-    //   .putFile(photo.uri, {cacheControl: 'public, max-age=3600'});
-    // upload.then((snapshot) => {
-    //   const serverTimestamp = firestore.FieldValue.serverTimestamp();
-    //   const articleRef = firestore().collection('articles');
-    //   const userRef = firestore().collection('users');
-
-    //   articleRef
-    //     .doc(fileName)
-    //     .set({
-    //       id: fileName,
-    //       author: userRef.doc(user.id),
-    //       fileName: snapshot.metadata.fullPath,
-    //       createdAt: serverTimestamp,
-    //       love: 0,
-    //     })
-    //     .then(() => {
-    //       alert('upload success!');
-    //     });
-    // });
-
-    // upload.on('state_changed', (progress) => {
-    //   console.log(
-    //     `transfer data ${progress.bytesTransferred} dari ${progress.totalBytes}`,
-    //   );
-    // });
-
-    // upload.catch((err) => {
-    //   console.log('error upload photo -> ', err);
-    // });
   };
 
   return (

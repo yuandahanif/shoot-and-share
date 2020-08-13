@@ -30,47 +30,32 @@ const _headerArticles = ({user, navigation, progress}) => {
           <Icon name="message-square" size={20} color={color.hitamAbu} />
         </TouchableOpacity>
       </View>
-      <View style={styles.progressContainer}>
-        <Image
-          source={{uri: user && user.avatar_url}}
-          style={styles.avatar}
-          resizeMode={Image.resizeMode.cover}
-        />
-        <View style={styles.progress}>
-          <Text style={styles.progressText}>30%</Text>
-          <ProgressBar
-            progress={0.3}
-            indeterminate={true}
-            width={null}
-            color={'rgba(0, 0, 0, 0.5)'}
-            borderColor={'rgba(0, 0, 0, 0.5)'}
-            unfilledColor={'rgba(255, 255, 255, 1)'}
-            borderRadius={1}
+      {progress.map((prog) => (
+        <View style={styles.progressContainer} key={prog.id}>
+          <Image
+            source={{uri: user && user.avatar_url}}
+            style={styles.avatar}
+            resizeMode={Image.resizeMode.cover}
           />
+          <View style={styles.progress}>
+            <Text style={styles.progressText}>{`${prog.progress * 100}%`}</Text>
+            <ProgressBar
+              progress={prog.progress}
+              indeterminate={prog.progress === 0 ? true : false}
+              width={null}
+              color={'rgba(0, 0, 0, 0.5)'}
+              borderColor={'rgba(0, 0, 0, 0.5)'}
+              unfilledColor={'rgba(255, 255, 255, 1)'}
+              borderRadius={1}
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.progressCancel}
+            onPress={() => prog.cancel()}>
+            <Icon name="x" color={color.hitamText} size={hp(2)} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.progressCancel}>
-          <Icon name="x" color={color.hitamText} size={hp(2)} />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.progressContainer}>
-        <Image
-          source={{uri: user && user.avatar_url}}
-          style={styles.avatar}
-          resizeMode={Image.resizeMode.cover}
-        />
-        <View style={styles.progress}>
-          <Text style={styles.progressText}>30%</Text>
-          <ProgressBar
-            progress={0.3}
-            indeterminate={true}
-            width={null}
-            color={'rgba(0, 0, 0, 0.5)'}
-            borderColor={'rgba(0, 0, 0, 0.5)'}
-            unfilledColor={'rgba(255, 255, 255, 1)'}
-            borderRadius={1}
-          />
-        </View>
-      </View>
+      ))}
     </>
   );
 };
