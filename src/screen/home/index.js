@@ -1,11 +1,9 @@
 import React, {useEffect, useContext, useState, useRef} from 'react';
 import {StyleSheet, Text, View, FlatList, Pressable} from 'react-native';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/Feather';
 import Modal from 'react-native-modal';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
-import Image from 'react-native-fast-image';
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import {
   heightPercentageToDP as hp,
@@ -18,84 +16,30 @@ import _renderItemArticle from '../../components/_renderItemArticle';
 import _headerArticles from '../../components/_headerArticles';
 
 import {color} from '../../styles/color';
+import {GetArticles, UpdateArticles} from '../../redux/actions/ArticleAction';
 
-const Home = ({navigation, route, user, Article}) => {
-  const isMounted = useRef(false);
+const Home = ({
+  navigation,
+  user,
+  articleGlobalState,
+  getArticles,
+  updateArticles,
+}) => {
+  const {articles, upload, limit, lastArticle} = articleGlobalState;
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [profileId, setProfileId] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [articles, setArticles] = useState([]);
-  const [lastArticleIndex, setLastArticleIndex] = useState(null);
-  const [articleLimit, setArticleLimit] = useState(3);
-
-  const articleRef = firestore()
-    .collection('articles')
-    .orderBy('createdAt', 'desc')
-    .limit(articleLimit);
+  // Bind Globall state
+  // const [articles, setArticles] = useState(articlesState);
+  // const [lastArticleIndex, setLastArticleIndex] = useState(null);
 
   const firstArticle = () => {
-    articleRef.get().then(async (documents) => {
-      let temp = [];
-      await Promise.all(
-        documents.docs.map(async (doc) => {
-          const data = doc.data();
-          const res = await data.author.get();
-          const author = await res.data();
-          const fileName = await storage().ref(data.fileName).getDownloadURL();
-          temp.push({...data, author, fileName});
-          // Promise.resolve(temp);
-        }),
-      )
-        .then(() => {
-          if (!isMounted.current) {
-            setArticleLimit(5);
-            setArticles(temp);
-            setLastArticleIndex(
-              documents.docs[documents.docs.length - 1] || null,
-            );
-            isMounted.current = true;
-          }
-        })
-        .catch((err) => {
-          console.log('firstArticle -> err', err);
-        });
-    });
+    getArticles();
   };
 
   const nextArticles = () => {
-    articleRef
-      .startAfter(lastArticleIndex)
-      .get()
-      .then(async (documents) => {
-        let temp = [];
-        await Promise.all(
-          documents.docs.map(async (doc) => {
-            const data = doc.data();
-            const res = await data.author.get();
-            const author = await res.data();
-            const fileName = await storage()
-              .ref(data.fileName)
-              .getDownloadURL();
-            temp.push({...data, author, fileName});
-          }),
-        )
-          .then(() => {
-            const newArticles = [...articles, ...temp];
-            setArticles(newArticles);
-            setLastArticleIndex(
-              documents.docs[documents.docs.length - 1] || null,
-            );
-          })
-          .catch((err) => {
-            console.log('nextArticles -> err', err);
-          });
-      });
-  };
-
-  const refreshArticle = () => {
-    isMounted.current = false;
-    setArticles([]);
-    firstArticle();
+    updateArticles(lastArticle, limit);
   };
 
   // * Modal
@@ -115,13 +59,12 @@ const Home = ({navigation, route, user, Article}) => {
     navigation.navigate('Chat', {reciverId: id});
   };
 
+  // ********* Use Effect
   useEffect(() => {
     firstArticle();
-    return () => {
-      isMounted.current = true;
-    };
   }, []);
 
+  useEffect(() => {}, [articleGlobalState.progress]);
   // * Article screen
 
   const SkeletonRenderItem = () => (
@@ -179,19 +122,18 @@ const Home = ({navigation, route, user, Article}) => {
 
   return (
     <View style={{flex: 1}}>
+      {console.log(articles)}
       <MoreModal />
       <FlatList
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         refreshing={isRefreshing}
-        onRefresh={() => {
-          refreshArticle();
-        }}
+        onRefresh={firstArticle}
         onEndReached={nextArticles}
         onEndReachedThreshold={0.5}
         stickyHeaderIndices={[0]}
         ListHeaderComponent={() =>
-          _headerArticles({user, navigation, progress: Article.upload})
+          _headerArticles({user, navigation, progress: upload})
         }
         data={articles}
         // TODO: skeleton loader . . .
@@ -207,16 +149,17 @@ const Home = ({navigation, route, user, Article}) => {
 
 const mapStateToProps = (state) => ({
   user: state.User,
-  Article: state.Article,
+  articleGlobalState: state.Article,
 });
 
-// const mapDispatchToProps = (dispatch) => {
-// return {
-// : () => dispatch(),
-// };
-// };
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getArticles: () => dispatch(GetArticles()),
+    updateArticles: (...data) => dispatch(UpdateArticles(...data)),
+  };
+};
 
-export default connect(mapStateToProps, null)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
 
 const styles = StyleSheet.create({
   flatList: {},

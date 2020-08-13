@@ -1,9 +1,10 @@
 import Type from '../actions/Type';
-import {act} from 'react-test-renderer';
 
 const articleState = {
-  articles: [{id: '', path: '', love: '', createdAt: ''}],
+  articles: [],
   upload: [],
+  limit: 3,
+  lastArticle: {},
 };
 
 // * add article.
@@ -32,14 +33,17 @@ export const Article = (state = articleState, action) => {
       updatedState = state.upload.filter((val) => val.id !== id);
       return {...state, upload: [...updatedState]};
 
-    case Type.GET_ARTICLES: // get all articles.
-      return state;
-
     case Type.SET_ARTICLES: // set all articles.
-      return {...state, ...action.payload};
+      return {...state, articles: [...action.payload]};
+
+    case Type.SET_ARTICLE_LIMIT: // article limit from firebase query.
+      return {...state, limit: action.payload};
+
+    case Type.SET_LAST_ARTICLE: // set last article used to update article.
+      return {...state, lastArticle: action.payload};
 
     case Type.UPDATE_ARTICLES: // update article | pagination.
-      return {...state, ...action.payload};
+      return {...state, articles: [...state.articles, ...action.payload]};
     default:
       return state;
   }

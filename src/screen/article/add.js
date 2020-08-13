@@ -1,11 +1,9 @@
-import React, {useRef, useEffect, useState, useContext} from 'react';
+import React, {useRef, useState} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 import {StyleSheet, Text, View} from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
-import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
 import {connect} from 'react-redux';
 
 import {UploadArticles} from '../../redux/actions/ArticleAction';
@@ -17,10 +15,6 @@ const Add = ({navigation, user, Upload}) => {
   const [uploadPromt, setUploadPromt] = useState(false);
   //   for performance
   const isFocused = useIsFocused();
-
-  // useEffect(() => {
-  //   console.log(user);
-  // }, [user]);
 
   const goBack = () => {
     navigation.goBack();
@@ -61,7 +55,7 @@ const Add = ({navigation, user, Upload}) => {
   const uploadImage = () => {
     setUploadPromt(false);
     camera.current.resumePreview();
-    uploadtoFirebase();
+    Upload(user.id, photo.uri);
   };
 
   const cancleUpload = () => {
@@ -74,10 +68,6 @@ const Add = ({navigation, user, Upload}) => {
       <Icon name="camera" size={40} color="white" />
     </TouchableOpacity>
   );
-
-  const uploadtoFirebase = () => {
-    Upload(user.id, photo.uri);
-  };
 
   return (
     <View style={styles.container}>

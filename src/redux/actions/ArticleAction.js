@@ -5,7 +5,7 @@ import {USER_REF} from './functions/authFunc';
 import Type from './Type';
 import {isArticleExist} from './functions/articleFunc';
 
-// * Dispatcher.
+// * Upload Dispatcher.
 const setUploadProgress = (payload) => ({
   type: Type.UPLOAD_ARTICLE,
   payload,
@@ -26,6 +26,27 @@ const clearUpload = (payload) => ({
   payload,
 });
 
+// * Articles Dispatcher.
+const setArticles = (payload) => ({
+  type: Type.SET_ARTICLES,
+  payload,
+});
+
+const setArticleLimit = (payload) => ({
+  type: Type.SET_ARTICLE_LIMIT,
+  payload,
+});
+
+const setLastArticle = (payload) => ({
+  type: Type.SET_LAST_ARTICLE,
+  payload,
+});
+
+const updateArticles = (payload) => ({
+  type: Type.UPDATE_ARTICLES,
+  payload,
+});
+
 // * Upload Pic to firebase.
 export const UploadArticles = (id, uri) => {
   return (dispatch) => {
@@ -35,12 +56,12 @@ export const UploadArticles = (id, uri) => {
       .ref(`/articles/images/${fileID}`)
       .putFile(uri, {cacheControl: 'public, max-age=3600'});
 
+    // cancel upload
     const cancelUpload = () => {
       upload
         .cancel()
-        .then((data) => {
+        .then(() => {
           dispatch(clearUpload(fileID));
-          console.log('cancelUpload -> data', data);
         })
         .catch((error) => {
           console.log('cancelUpload -> error', error);
@@ -101,7 +122,7 @@ export const UploadArticles = (id, uri) => {
       (err) => {
         if (err.code === 'storage/canceled') {
           // console.log('UploadArticles -> err.code', err.code);
-          dispatch(cancelUpload(fileID));
+          // dispatch(cancelUpload(fileID));
         }
         console.log('UploadArticles -> err', err);
       },
@@ -117,5 +138,65 @@ export const UploadArticles = (id, uri) => {
       }
       console.log('error upload photo -> ', err);
     });
+  };
+};
+
+// * GET ALL ARTICLES
+const articleRef = (limit) =>
+  firestore().collection('articles').orderBy('createdAt', 'desc').limit(limit);
+
+export const GetArticles = () => {
+  return async (dispatch) => {
+    try {
+      const documents = await articleRef(4).get();
+      let articles = [];
+      await Promise.all(
+        documents.docs.map(async (doc) => {
+          const data = doc.data();
+          const res = await data.author.get();
+          const author = await res.data();
+          const fileName = await storage().ref(data.fileName).getDownloadURL();
+          articles.push({...data, author, fileName});
+          // Promise.resolve(articles);
+        }),
+      )
+        .then(() => {
+          dispatch(setArticleLimit(5));
+          dispatch(setArticles(articles));
+          dispatch(setLastArticle(documents.docs[documents.docs.length - 1]));
+        })
+        .catch((err) => {
+          console.log('firstArticle -> err', err);
+        });
+    } catch (error) {
+      console.log('return -> error', error);
+    }
+  };
+};
+
+// * Update article pagination.
+export const UpdateArticles = (last, limit) => {
+  return async (dispatch) => {
+    try {
+      const documents = await articleRef(limit).startAfter(last).get();
+      let articles = [];
+      await Promise.all(
+        documents.docs.map(async (doc) => {
+          const data = doc.data();
+          const res = await data.author.get();
+          const author = await res.data();
+          const fileName = await storage().ref(data.fileName).getDownloadURL();
+          articles.push({...data, author, fileName});
+        }),
+      )
+        .then(() => {
+          dispatch(setArticleLimit(3));
+          dispatch(updateArticles(articles));
+          dispatch(setLastArticle(documents.docs[documents.docs.length - 1]));
+        })
+        .catch((err) => {
+          console.log('nextArticles -> err', err);
+        });
+    } catch (error) {}
   };
 };

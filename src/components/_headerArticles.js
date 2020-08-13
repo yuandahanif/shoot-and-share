@@ -14,7 +14,7 @@ import {color} from '../styles/color';
 const _headerArticles = ({user, navigation, progress}) => {
   const gotoProfile = () => navigation.navigate('profile');
   const gotoChatList = () => navigation.navigate('Contacts', {id: user.id});
-
+  const cancel = () => prog.cancel();
   return (
     <>
       <View style={styles.author}>
@@ -49,9 +49,7 @@ const _headerArticles = ({user, navigation, progress}) => {
               borderRadius={1}
             />
           </View>
-          <TouchableOpacity
-            style={styles.progressCancel}
-            onPress={() => prog.cancel()}>
+          <TouchableOpacity style={styles.progressCancel} onPress={cancel}>
             <Icon name="x" color={color.hitamText} size={hp(2)} />
           </TouchableOpacity>
         </View>
