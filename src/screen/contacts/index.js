@@ -43,8 +43,6 @@ const Contacts = ({navigation, user, SetContacts, contacts}) => {
         alert('Authentication Failed');
       });
   };
-  // FIXME: anjirlah entah ini kenapa. keknya problem nya dari screen chat.
-
   const openModal = (id) => {
     setChatID(id);
     setIsModalVisible(true);

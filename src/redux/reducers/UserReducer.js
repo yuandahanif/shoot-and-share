@@ -7,13 +7,11 @@ const userState = {
   createdAt: '',
 };
 
-const articleState = [{id: '', path: '', love: '', createdAt: ''}];
+const articleState = [];
 
 const contactState = [];
 
-const chatsState = {id: '', chats: [], listener: {start: '', stop: ''}};
-
-// User/Auth reducer
+// * User/Auth reducer
 // To handle auth and set current user.
 // here wiil be used for profile.
 export const User = (state = userState, action) => {
@@ -34,11 +32,14 @@ export const User = (state = userState, action) => {
 
 // * users article.
 export const UserArticles = (state = articleState, action) => {
+  let newState;
   switch (action.type) {
     case Type.SET_USER_ARTICLES: // * Set users article.
-      return {...state, ...action.payload};
-    case Type.GET_USER_ARTICLES: // * Get all users article
-      return state;
+      if (state.length !== action.payload.length) {
+        return action.payload;
+      } else {
+        return state;
+      }
     default:
       return state;
   }
@@ -51,30 +52,6 @@ export const UserContacts = (state = contactState, action) => {
       return [...action.payload];
     case Type.SET_CHAT_ID:
       return [];
-    default:
-      return state;
-  }
-};
-
-// * User chat.
-export const UserChats = (state = chatsState, action) => {
-  let newState;
-
-  switch (action.type) {
-    case Type.SET_CHAT:
-      // if (state.length === 0) {
-      //   newState = [action.payload];
-      // } else {
-      //   newState = state.filter((val) => {
-      //     // * if same message exist, update it.
-      //     if (val.id === action.payload.id) {
-      //       return [...state, {...val, ...action.payload}];
-      //     }
-      //     // * if no same message | just return it.
-      //     return val;
-      //   });
-      // }
-      return {...state, ...action.payload};
     default:
       return state;
   }

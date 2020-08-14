@@ -6,10 +6,6 @@ export default {
   GET_USER: 'GET_USER',
   SET_CONTACTS: 'SET_CONTACTS',
 
-  // chat per user data
-  SET_CHAT: 'SET_CHAT',
-  SET_CHAT_ID: 'SET_CHAT_ID',
-
   // Articles belongs to user.
   SET_USER_ARTICLES: 'SET_USER_ARTICLES',
 
@@ -21,4 +17,5 @@ export default {
   UPDATE_ARTICLES: 'UPDATE_ARTICLES',
   SET_ARTICLE_LIMIT: 'SET_ARTICLE_LIMIT',
   SET_LAST_ARTICLE: 'SET_LAST_ARTICLE',
+  SET_LOVE_ARTICLE: 'SET_LOVE_ARTICLE',
 };

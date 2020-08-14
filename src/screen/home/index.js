@@ -2,7 +2,6 @@ import React, {useEffect, useContext, useState, useRef} from 'react';
 import {StyleSheet, Text, View, FlatList, Pressable} from 'react-native';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
-import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import {
@@ -16,7 +15,11 @@ import _renderItemArticle from '../../components/_renderItemArticle';
 import _headerArticles from '../../components/_headerArticles';
 
 import {color} from '../../styles/color';
-import {GetArticles, UpdateArticles} from '../../redux/actions/ArticleAction';
+import {
+  GetArticles,
+  UpdateArticles,
+  setLoveArticle,
+} from '../../redux/actions/ArticleAction';
 
 const Home = ({
   navigation,
@@ -24,23 +27,43 @@ const Home = ({
   articleGlobalState,
   getArticles,
   updateArticles,
+  love,
 }) => {
   const {articles, upload, limit, lastArticle} = articleGlobalState;
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [profileId, setProfileId] = useState(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  // Bind Globall state
-  // const [articles, setArticles] = useState(articlesState);
-  // const [lastArticleIndex, setLastArticleIndex] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(true);
+  const [allowUpdate, setAllowUpdate] = useState(false);
 
-  const firstArticle = () => {
-    getArticles();
-  };
-// FIXME: bug disini. ada duplikat key juka me refresh terlalu banyak.
+  // ********* Use Effect
+  useEffect(() => {
+    firstArticle();
+  }, []);
+
+  useEffect(() => {
+    setIsRefreshing(false);
+    setAllowUpdate(true);
+    console.log('refresh');
+  }, [lastArticle]);
+
+  const firstArticle = () => getArticles();
+  // FIXME: bug disini. ada duplikat key juka me refresh terlalu banyak.
+
   const nextArticles = () => {
-    updateArticles(lastArticle, limit);
+    if (allowUpdate) {
+      setAllowUpdate(false);
+      setIsRefreshing(true);
+      updateArticles(lastArticle, limit);
+    }
   };
+
+  const refreshArticle = () => {
+    setIsRefreshing(true);
+    firstArticle();
+  };
+
+  const loveArticle = (id) => love(id);
 
   // * Modal
   const openModal = (id) => {
@@ -59,12 +82,6 @@ const Home = ({
     navigation.navigate('Chat', {reciverId: id});
   };
 
-  // ********* Use Effect
-  useEffect(() => {
-    firstArticle();
-  }, []);
-
-  useEffect(() => {}, [articleGlobalState.progress]);
   // * Article screen
 
   const SkeletonRenderItem = () => (
@@ -127,7 +144,7 @@ const Home = ({
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         refreshing={isRefreshing}
-        onRefresh={firstArticle}
+        onRefresh={refreshArticle}
         onEndReached={nextArticles}
         onEndReachedThreshold={0.5}
         stickyHeaderIndices={[0]}
@@ -137,7 +154,9 @@ const Home = ({
         data={articles}
         // TODO: skeleton loader . . .
         ListEmptyComponent={SkeletonRenderItem}
-        renderItem={({item}) => _renderItemArticle({item, openModal})}
+        renderItem={({item}) =>
+          _renderItemArticle({item, openModal, loveArticle})
+        }
         keyExtractor={(data) => data.id}
         contentContainerStyle={styles.flatList}
         ListHeaderComponentStyle={styles.header}
@@ -155,6 +174,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     getArticles: () => dispatch(GetArticles()),
     updateArticles: (...data) => dispatch(UpdateArticles(...data)),
+    love: (data) => dispatch(setLoveArticle(data)),
   };
 };
 

@@ -1,6 +1,7 @@
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import database from '@react-native-firebase/database';
+import storage from '@react-native-firebase/storage';
 import {GoogleSignin} from '@react-native-community/google-signin';
 
 import {
@@ -25,13 +26,8 @@ const setContacts = (payload) => ({
   payload,
 });
 
-const setChat = (payload) => ({
-  type: Type.SET_CHAT,
-  payload,
-});
-
-const setChatMethod = (payload) => ({
-  type: Type.SET_CHAT,
+const setUserArticles = (payload) => ({
+  type: Type.SET_USER_ARTICLES,
   payload,
 });
 
@@ -178,102 +174,41 @@ export const SetContacts = (id) => {
   };
 };
 
-// * Set chat data with spesific user
-export const SetUserChat = (sender, reciver) => {
+// * Get All Articles Belonges To current users.
+export const SetUserArticles = (id) => {
   return async (dispatch) => {
-    let id = '';
-    if (reciver > sender) {
-      id = `${reciver}_${sender}`;
-    } else {
-      id = `${sender}_${reciver}`;
-    }
-
-    // * setup listener to get the message every new chat added.
-    const startListener = (id) => {
-      database()
-        .ref(`messages/${id}`)
-        .limitToLast(50)
-        .on('child_added', (snapshot) => {
-          const data = snapshot.val();
-          dispatch(setChat({chats: data}));
-          // setMessages((prevState) => GiftedChat.append(prevState, value));
-        });
-    };
-
-    // *stop listener
-    const stopListener = (id) => {
-      const db = database().ref(`messages/${id}`);
-      if (db) {
-        db.off();
-      }
-    };
-
-    // * Saat pesan dikirim
-    const onSend = (id, sender, reciver, messages) => {
-      // * get chat room id from database.
-      const userRef = database().ref(`users/${sender}`);
-      const reciverRef = database().ref(`users/${reciver}`);
-
-      userRef.once('value').then((snapshot) => {
-        let data = snapshot.val();
-        if (data) {
-          // * add new record to sender database.
-          userRef.set({
-            chatWith: {
-              [reciver]: {id, lastChat: database.ServerValue.TIMESTAMP},
-            },
+    try {
+      const user = await firestore()
+        .collection('users')
+        .where('id', '==', id)
+        .orderBy('createdAt', 'asc')
+        .get();
+      // const userData = user.data();
+      user.forEach(async (data) => {
+        const userData = data.data();
+        let articles = [];
+        if (userData.articles) {
+          await Promise.all(
+            userData.articles.map(async (article) => {
+              const articleData = await article.get();
+              if (articleData.exists) {
+                const data = articleData.data();
+                const fileName = await storage()
+                  .ref(data.fileName)
+                  .getDownloadURL();
+                articles.push({...data, fileName});
+              }
+            }),
+          ).then(() => {
+            // console.log('SetUserArticles -> articles', articles);
+            dispatch(setUserArticles(articles.reverse()));
           });
         } else {
-          userRef.set({
-            chatWith: {
-              ...data.chatWith,
-              [reciver]: {id, lastChat: database.ServerValue.TIMESTAMP},
-            },
-          });
+          dispatch(setUserArticles([]));
         }
-
-        // * check if reciver have any chat before.
-        reciverRef.once('value').then((snapshot) => {
-          let data = snapshot.val();
-
-          // * if reciver already have chat with other.
-          if (data) {
-            reciverRef.set({
-              chatWith: {...data.chatWith, [sender]: id},
-            });
-          } else {
-            // * if rechiver have no chat with other.
-            reciverRef.set({
-              chatWith: {[sender]: id},
-            });
-          }
-        });
       });
-
-      // * Push message to database.
-      messages.forEach((value) => {
-        database().ref(`messages/${id}`).push({
-          _id: value._id,
-          createdAt: database.ServerValue.TIMESTAMP,
-          text: value.text,
-          user: value.user,
-        });
-        
-      });
-      // setMessages((prevState) => GiftedChat.append(prevState, messages));
-    };
-
-    dispatch(
-      setChatMethod({
-        id,
-        onSend,
-        listener: {stop: stopListener, start: startListener},
-      }),
-    );
+    } catch (error) {
+      console.log('GetUserArticles -> error', error);
+    }
   };
-};
-
-// * Get All Articles Belonges To current users.
-export const GetUserArticles = (id) => {
-  return (dispatch) => {};
 };

@@ -3,7 +3,7 @@ import storage from '@react-native-firebase/storage';
 
 import {USER_REF} from './functions/authFunc';
 import Type from './Type';
-import {isArticleExist} from './functions/articleFunc';
+import {addArticleToUserDatabase} from './functions/articleFunc';
 
 // * Upload Dispatcher.
 const setUploadProgress = (payload) => ({
@@ -46,6 +46,8 @@ const updateArticles = (payload) => ({
   type: Type.UPDATE_ARTICLES,
   payload,
 });
+
+const loveArticle = (payload) => ({type: Type.SET_LOVE_ARTICLE, payload});
 
 // * Upload Pic to firebase.
 export const UploadArticles = (id, uri) => {
@@ -92,7 +94,8 @@ export const UploadArticles = (id, uri) => {
             love: 0,
           })
           .then(() => {
-            isArticleExist(id, fileID).then(() => {
+            const articleRefToAdd = articleRef.doc(fileID);
+            addArticleToUserDatabase(id, articleRefToAdd).then(() => {
               dispatch(uploadSuccess(fileID));
             });
           })
@@ -190,13 +193,23 @@ export const UpdateArticles = (last, limit) => {
         }),
       )
         .then(() => {
-          dispatch(setArticleLimit(3));
-          dispatch(updateArticles(articles));
           dispatch(setLastArticle(documents.docs[documents.docs.length - 1]));
+          dispatch(setArticleLimit(5));
+          dispatch(updateArticles(articles));
         })
         .catch((err) => {
           console.log('nextArticles -> err', err);
         });
     } catch (error) {}
+  };
+};
+
+export const setLoveArticle = (id) => {
+  return async (dispatch) => {
+    await firestore()
+      .collection('articles')
+      .doc(id)
+      .update({love: firestore.FieldValue.increment(1)});
+    dispatch(loveArticle(id));
   };
 };

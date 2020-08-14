@@ -1,10 +1,19 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Image from 'react-native-fast-image';
 import Icon from 'react-native-vector-icons/Feather';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
 
-const _renderItemArticle = ({item, openModal}) => {
+const _renderItemArticle = ({item, openModal, loveArticle}) => {
+  const addLove = (id) => {
+    loveArticle(id);
+    item.love += 1;
+  };
+
   const dateConvert = (time) => {
     const date = new Date(time * 1000);
     let month = [
@@ -55,7 +64,7 @@ const _renderItemArticle = ({item, openModal}) => {
       </View>
       <ImageArticle uri={item.fileName} />
       <View style={styles.description}>
-        <TouchableOpacity style={styles.love}>
+        <TouchableOpacity style={styles.love} onPress={() => addLove(item.id)}>
           <Icon name="thumbs-up" size={16} color="red" />
           <Text style={styles.loveCount}>{item.love}</Text>
         </TouchableOpacity>
@@ -69,9 +78,10 @@ export default _renderItemArticle;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
+    alignSelf: 'center',
     backgroundColor: 'white',
-    height: 400,
+    width: wp('90%'),
+    height: wp('90%'),
     justifyContent: 'flex-start',
     alignItems: 'stretch',
     overflow: 'hidden',
@@ -119,7 +129,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 300,
+    height: wp('90%') - 100,
     justifyContent: 'center',
     alignItems: 'center',
   },

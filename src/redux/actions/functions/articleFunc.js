@@ -1,5 +1,5 @@
 import {USER_REF} from './authFunc';
-export const isArticleExist = async (id, article) => {
+export const addArticleToUserDatabase = async (id, article) => {
   try {
     // get user articles
     const user = await USER_REF.doc(id).get();

@@ -44,6 +44,16 @@ export const Article = (state = articleState, action) => {
 
     case Type.UPDATE_ARTICLES: // update article | pagination.
       return {...state, articles: [...state.articles, ...action.payload]};
+
+    case Type.SET_LOVE_ARTICLE:
+      id = action.payload;
+      updatedState = state.articles.map((val) => {
+        if (val.id === id) {
+          return {...val, love: val.love + 1};
+        }
+        return val;
+      });
+      return {...state, articlse: updatedState};
     default:
       return state;
   }
