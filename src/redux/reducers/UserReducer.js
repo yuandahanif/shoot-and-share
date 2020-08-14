@@ -8,16 +8,10 @@ const userState = {
 };
 
 const articleState = [{id: '', path: '', love: '', createdAt: ''}];
-const contactState = [
-  {
-    _id: '',
-    name: '',
-    avatar: '',
-    roomId: '',
-  },
-];
 
-const chatsState = [{id: '', chats: []}];
+const contactState = [];
+
+const chatsState = {id: '', chats: [], listener: {start: '', stop: ''}};
 
 // User/Auth reducer
 // To handle auth and set current user.
@@ -53,10 +47,10 @@ export const UserArticles = (state = articleState, action) => {
 // * user contacts.
 export const UserContacts = (state = contactState, action) => {
   switch (action.type) {
-    case Type.GET_CONTACTS:
-      return state;
     case Type.SET_CONTACTS:
-      return {...state, ...action.payload};
+      return [...action.payload];
+    case Type.SET_CHAT_ID:
+      return [];
     default:
       return state;
   }
@@ -64,11 +58,23 @@ export const UserContacts = (state = contactState, action) => {
 
 // * User chat.
 export const UserChats = (state = chatsState, action) => {
+  let newState;
+
   switch (action.type) {
-    case Type.GET_CHAT:
-      return state;
     case Type.SET_CHAT:
-      return [...state, action.payload];
+      // if (state.length === 0) {
+      //   newState = [action.payload];
+      // } else {
+      //   newState = state.filter((val) => {
+      //     // * if same message exist, update it.
+      //     if (val.id === action.payload.id) {
+      //       return [...state, {...val, ...action.payload}];
+      //     }
+      //     // * if no same message | just return it.
+      //     return val;
+      //   });
+      // }
+      return {...state, ...action.payload};
     default:
       return state;
   }

@@ -20,8 +20,18 @@ const logout = () => ({
   type: Type.LOGOUT,
 });
 
-const contacts = (payload) => ({
+const setContacts = (payload) => ({
   type: Type.SET_CONTACTS,
+  payload,
+});
+
+const setChat = (payload) => ({
+  type: Type.SET_CHAT,
+  payload,
+});
+
+const setChatMethod = (payload) => ({
+  type: Type.SET_CHAT,
   payload,
 });
 
@@ -145,33 +155,121 @@ export const Logout = () => {
 export const SetContacts = (id) => {
   const userRef = database().ref(`users/${id}`);
   return (dispatch) => {
-    userRef.on('child_added', (snapshot) => {
+    userRef.on('child_added', async (snapshot) => {
+      let temp = [];
       let data = snapshot.val();
-      console.log('SetContacts -> data', data);
       for (const chat in data) {
-        // console.log('SetContacts -> chat', chat);
         if (data.hasOwnProperty(chat)) {
-          firestore()
-            .doc(`users/${chat}`)
-            .get()
-            .then((doc) => {
-              if (doc.exists) {
-                const user = doc.data();
-                dispatch((prevState) => [
-                  ...prevState,
-                  {
-                    _id: user.id,
-                    name: user.name,
-                    avatar: user.avatar_url,
-                    chatId: chat,
-                  },
-                ]);
-              }
+          const doc = await firestore().doc(`users/${chat}`).get();
+          if (doc.exists) {
+            const user = doc.data();
+            temp.push({
+              _id: user.id,
+              name: user.name,
+              avatar: user.avatar_url,
+              reciverId: chat,
+              chatId: data[chat],
             });
+          }
         }
       }
-      dispatch(contacts(data));
+      dispatch(setContacts(temp));
     });
+  };
+};
+
+// * Set chat data with spesific user
+export const SetUserChat = (sender, reciver) => {
+  return async (dispatch) => {
+    let id = '';
+    if (reciver > sender) {
+      id = `${reciver}_${sender}`;
+    } else {
+      id = `${sender}_${reciver}`;
+    }
+
+    // * setup listener to get the message every new chat added.
+    const startListener = (id) => {
+      database()
+        .ref(`messages/${id}`)
+        .limitToLast(50)
+        .on('child_added', (snapshot) => {
+          const data = snapshot.val();
+          dispatch(setChat({chats: data}));
+          // setMessages((prevState) => GiftedChat.append(prevState, value));
+        });
+    };
+
+    // *stop listener
+    const stopListener = (id) => {
+      const db = database().ref(`messages/${id}`);
+      if (db) {
+        db.off();
+      }
+    };
+
+    // * Saat pesan dikirim
+    const onSend = (id, sender, reciver, messages) => {
+      // * get chat room id from database.
+      const userRef = database().ref(`users/${sender}`);
+      const reciverRef = database().ref(`users/${reciver}`);
+
+      userRef.once('value').then((snapshot) => {
+        let data = snapshot.val();
+        if (data) {
+          // * add new record to sender database.
+          userRef.set({
+            chatWith: {
+              [reciver]: {id, lastChat: database.ServerValue.TIMESTAMP},
+            },
+          });
+        } else {
+          userRef.set({
+            chatWith: {
+              ...data.chatWith,
+              [reciver]: {id, lastChat: database.ServerValue.TIMESTAMP},
+            },
+          });
+        }
+
+        // * check if reciver have any chat before.
+        reciverRef.once('value').then((snapshot) => {
+          let data = snapshot.val();
+
+          // * if reciver already have chat with other.
+          if (data) {
+            reciverRef.set({
+              chatWith: {...data.chatWith, [sender]: id},
+            });
+          } else {
+            // * if rechiver have no chat with other.
+            reciverRef.set({
+              chatWith: {[sender]: id},
+            });
+          }
+        });
+      });
+
+      // * Push message to database.
+      messages.forEach((value) => {
+        database().ref(`messages/${id}`).push({
+          _id: value._id,
+          createdAt: database.ServerValue.TIMESTAMP,
+          text: value.text,
+          user: value.user,
+        });
+        
+      });
+      // setMessages((prevState) => GiftedChat.append(prevState, messages));
+    };
+
+    dispatch(
+      setChatMethod({
+        id,
+        onSend,
+        listener: {stop: stopListener, start: startListener},
+      }),
+    );
   };
 };
 

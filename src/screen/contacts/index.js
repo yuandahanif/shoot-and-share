@@ -7,7 +7,6 @@ import {
 } from 'react-native-responsive-screen';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
-import firestore from '@react-native-firebase/firestore';
 import database from '@react-native-firebase/database';
 import TouchID from 'react-native-touch-id';
 import Modal from 'react-native-modal';
@@ -16,44 +15,13 @@ import {connect} from 'react-redux';
 import {SetContacts} from '../../redux/actions/UserAction';
 import {color} from '../../styles/color';
 
-const Contacts = ({navigation, route, user, SetContacts, contacts}) => {
-  // const [user, setUser] = useState(route.params.id);
-  const [chats, setChats] = useState([]);
+const Contacts = ({navigation, user, SetContacts, contacts}) => {
   const [isFetching, setIsFetching] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [chatID, setChatID] = useState(null);
 
-  const getChatList = () => {
+  const getContactList = () => {
     SetContacts(user.id);
-    // database()
-    //   .ref(`users/${user}`)
-    //   .on('child_added', (snapshot) => {
-    //     let data = snapshot.val();
-    //     for (const chat in data) {
-    //       if (data.hasOwnProperty(chat)) {
-    //         firestore()
-    //           .doc(`users/${chat}`)
-    //           .get()
-    //           .then((doc) => {
-    //             if (doc.exists) {
-    //               const user = doc.data();
-    //               if (!isMounted.current) {
-    //                 setChats((prevState) => [
-    //                   ...prevState,
-    //                   {
-    //                     _id: user.id,
-    //                     name: user.name,
-    //                     avatar: user.avatar_url,
-    //                     chatId: chat,
-    //                   },
-    //                 ]);
-    //               }
-    //             }
-    //             setIsFetching(false);
-    //           });
-    //       }
-    //     }
-    //   });
   };
 
   const deleteChat = () => {
@@ -75,6 +43,7 @@ const Contacts = ({navigation, route, user, SetContacts, contacts}) => {
         alert('Authentication Failed');
       });
   };
+  // FIXME: anjirlah entah ini kenapa. keknya problem nya dari screen chat.
 
   const openModal = (id) => {
     setChatID(id);
@@ -86,17 +55,11 @@ const Contacts = ({navigation, route, user, SetContacts, contacts}) => {
     setIsModalVisible(false);
   };
 
-  const goToChat = (id) =>
-    navigation.navigate('Chat', {reciverId: id, senderId: user});
+  const goToChat = (id) => navigation.navigate('Chat', {reciverId: id});
 
   useEffect(() => {
-    getChatList();
-
-    // setTimeout(() => {
-    //   setIsFetching(false);
-    // }, 5000);
+    getContactList();
     return () => {
-      // isMounted.current = true;
       const db = database().ref(`users/${user.id}`);
       if (db) {
         db.off();
@@ -107,8 +70,8 @@ const Contacts = ({navigation, route, user, SetContacts, contacts}) => {
   const _renderItem = ({item}) => (
     <TouchableOpacity
       style={styles.contact}
-      onLongPress={() => openModal(item.chatId)}
-      onPress={() => goToChat(item.chatId)}>
+      onLongPress={() => openModal(item.reciverId)}
+      onPress={() => goToChat(item.reciverId)}>
       <Image
         source={{uri: item.avatar || null}}
         style={styles.avatar}
@@ -154,7 +117,7 @@ const Contacts = ({navigation, route, user, SetContacts, contacts}) => {
       <ChatModal />
       <FlatList
         ListEmptyComponent={EmptyList}
-        data={chats}
+        data={contacts}
         renderItem={_renderItem}
         keyExtractor={(data) => data._id.toString()}
       />

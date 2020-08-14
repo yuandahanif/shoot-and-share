@@ -5,11 +5,10 @@ export default {
   SET_USER: 'SET_USER',
   GET_USER: 'GET_USER',
   SET_CONTACTS: 'SET_CONTACTS',
-  GET_CONTACTS: 'GET_CONTACTS',
 
   // chat per user data
-  GET_CHAT: 'GET_CHAT',
   SET_CHAT: 'SET_CHAT',
+  SET_CHAT_ID: 'SET_CHAT_ID',
 
   // Articles belongs to user.
   SET_USER_ARTICLES: 'SET_USER_ARTICLES',

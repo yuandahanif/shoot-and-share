@@ -37,7 +37,7 @@ const Home = ({
   const firstArticle = () => {
     getArticles();
   };
-
+// FIXME: bug disini. ada duplikat key juka me refresh terlalu banyak.
   const nextArticles = () => {
     updateArticles(lastArticle, limit);
   };
@@ -122,7 +122,6 @@ const Home = ({
 
   return (
     <View style={{flex: 1}}>
-      {console.log(articles)}
       <MoreModal />
       <FlatList
         showsVerticalScrollIndicator={false}
