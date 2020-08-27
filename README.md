@@ -13,3 +13,5 @@ i focused on state management and Firebase so i don't do much on UI/UX.
 - Register/Login with email and password, or using Google Account.
 - Upload photo directly from camera.
 - Personal Chat.
+- Push Notification.
+- CodePush.
