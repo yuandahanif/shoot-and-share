@@ -14,7 +14,8 @@ Using [CodePush](https://github.com/microsoft/react-native-code-push) to deploy 
 Push notification using [One Signal](https://onesignal.com/).
 ## feature
 - Register/Login with email and password, or using Google Account.
-- Upload photo directly from camera.
+- Camera.
+- Upload and cancel Upload.
 - Personal Chat.
 - Push Notification.
 - CodePush.
