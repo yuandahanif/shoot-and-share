@@ -2,7 +2,7 @@
 
 ![app screenshot](https://raw.githubusercontent.com/yuandahanif/shoot-and-share/master/src/screenshot/bg.png)
 
-I made this app to improve React Native skills, and do some fun with javascript. 
+I made this app to improve my React Native skills, and do some fun with javascript.
 This app is inspired by Instagram, where users share their photos with others.
 
 I focus on state management and Firebase, so I don't do much on UI / UX.
