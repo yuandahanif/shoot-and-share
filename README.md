@@ -7,8 +7,11 @@ this app inspired by [Instagram](http://https://www.instagram.com), where the us
 
 i focused on state management and Firebase so i don't do much on UI/UX.
 
+Backend using [firebase](https://firebase.google.com/)
 
+Using [CodePush](https://github.com/microsoft/react-native-code-push) to deploy mobile app updates directly.
 
+Push notification using [One Signal](https://onesignal.com/).
 ## feature
 - Register/Login with email and password, or using Google Account.
 - Upload photo directly from camera.
