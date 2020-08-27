@@ -2,10 +2,10 @@
 
 ![app screenshot](https://raw.githubusercontent.com/yuandahanif/shoot-and-share/master/src/screenshot/bg.png)
 
-i make this app to improve my react native skill, and do some fun with javascript, nothing else.
-this app inspired by [Instagram](http://https://www.instagram.com), where the user share their photo with the other.
+I made this app to improve React Native skills, and do some fun with javascript. 
+This app is inspired by Instagram, where users share their photos with others.
 
-i focused on state management and Firebase so i don't do much on UI/UX.
+I focus on state management and Firebase, so I don't do much on UI / UX.
 
 Backend using [firebase](https://firebase.google.com/)
 
